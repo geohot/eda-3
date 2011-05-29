@@ -9,7 +9,7 @@
 
 using namespace std;
 
-namespace eda3 {
+namespace edadb {
 
 // Represents one byte in the memory space
 class Byte {
@@ -24,6 +24,6 @@ class Byte {
   map<uint64_t, uint8_t> datamap_;
 };
 
-}  // namespace eda3
+}  // namespace edadb
 #endif  // EDADB_BYTE_H_
 

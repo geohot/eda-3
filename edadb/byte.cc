@@ -1,7 +1,7 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
-#include "EDAdb/Byte.h"
+#include "edadb/byte.h"
 
 namespace edadb {
 
@@ -10,6 +10,9 @@ void Byte::commit(uint64_t changelist_number, uint8_t data) {
 }
 
 uint8_t Byte::get(uint64_t changelist_number) {
+  if (datamap_.empty()) {
+    return 0;
+  }
   if (changelist_number == 0) {
     return datamap_.rbegin()->second;
   } else {
