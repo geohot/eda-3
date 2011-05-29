@@ -4,8 +4,10 @@
 #ifndef EDADB_BYTE_H_
 #define EDADB_BYTE_H_
 
-#include <cstdint>
+#include <stdint.h>
 #include <map>
+
+using namespace std;
 
 namespace eda3 {
 

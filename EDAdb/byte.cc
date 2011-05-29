@@ -3,7 +3,7 @@
 
 #include "EDAdb/Byte.h"
 
-namespace eda3 {
+namespace edadb {
 
 void Byte::commit(uint64_t changelist_number, uint8_t data) {
   datamap_[changelist_number] = data;
@@ -11,11 +11,11 @@ void Byte::commit(uint64_t changelist_number, uint8_t data) {
 
 uint8_t Byte::get(uint64_t changelist_number) {
   if (changelist_number == 0) {
-    return datamap_rbegin()->second;
+    return datamap_.rbegin()->second;
   } else {
     return (--datamap_.upper_bound(changelist_number))->second;
   }
 }
 
-}  // namespace eda3
+}  // namespace edadb
 
