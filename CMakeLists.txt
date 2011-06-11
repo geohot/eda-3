@@ -3,15 +3,25 @@ cmake_minimum_required(VERSION 2.6)
 PROJECT(eda3)
 SET(EDADB_SRCS
 ./edadb/byte.cc
+./edadb/memory.cc
 )
 INCLUDE_DIRECTORIES(./)
+INCLUDE_DIRECTORIES(~/devtools/thrift-0.6.0/lib/cpp/src)
 ADD_LIBRARY(edadb ${EDADB_SRCS})
+ADD_EXECUTABLE(edadb_server
+./edadb/edadb.cc
+./edadb/gen-cpp/EDAdb.cpp
+./edadb/gen-cpp/edadb_constants.cpp
+./edadb/gen-cpp/edadb_types.cpp
+)
+TARGET_LINK_LIBRARIES(edadb_server edadb "thrift")
 
 #-----testing below this line-----
 SET(GTEST_DIR ~/devtools/gtest-1.6.0)
 
 SET(EDADB_TESTS
 ./edadb/byte_test.cc
+./edadb/memory_test.cc
 )
 
 ADD_EXECUTABLE(edadb_test EXCLUDE_FROM_ALL ${GTEST_DIR}/src/gtest_main.cc ${EDADB_TESTS})
