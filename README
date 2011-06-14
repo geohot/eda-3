@@ -1,4 +1,13 @@
 This is EDA3, the fourth EDA
 
-edadb/
+edadb/ -- the backend storage system for raw ram
+  byte.* -- the Byte class
+  memory.* -- the Memory class
+www/ -- the directory root(ish) of apache
+  edadb/ -- PHP endpoints to access the EDAdb
+  js/ -- common javascript files
+    base.js -- basic functions that should be a part of core javascript(not EDA specific)
+    dbmanager.js -- the client side version of the edadb
+    jquery-1.6.1.min.js -- jquery
+  xvi/ -- xvi32 hex editor webapp
 

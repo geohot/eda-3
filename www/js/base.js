@@ -20,6 +20,10 @@ function fhex(str) {
   return parseInt(str, 16);
 }
 
+function fdec(str) {
+  return parseInt(str, 10);
+}
+
 function chr(num) {
   return String.fromCharCode(num);
 }

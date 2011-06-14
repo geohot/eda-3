@@ -4,7 +4,14 @@
 $(document).ready(function() {
   renderHexViewport(0x1000, 0x200);
   selectAddress(0x1000, 'H');
+  initControlBox();
 });
+
+function initControlBox() {
+  var clnumber = getMaxChangelist();
+  $('#clnumber')[0].innerHTML = clnumber;
+  $('#changecount')[0].innerHTML = '0x0';
+}
 
 // specific functions
 function toPrintable(chr) {
@@ -22,7 +29,6 @@ var selectedType = null;
 
 // stop selecting my shit
 $(document).mousedown(function() { return false; });
-
 
 // this is about moving
 window.onkeydown = function(e) {
@@ -73,11 +79,20 @@ $('#rawdata').delegate('td', 'mousedown', function(){
   selectAddress(fhex($(this)[0].id.substr(1)), 'R');
 });
 
+function handleCommit() {
+  var clnumber = commit();
+  $('#clnumber')[0].innerHTML = clnumber;
+  $('#changecount')[0].innerHTML = '0x0';
+}
 
 function setAddress(addr, asc) {
   $('#H'+shex(selectedAddress))[0].innerHTML = shex(asc, 2);
   $('#R'+shex(selectedAddress))[0].innerHTML = toPrintable(asc);
 // add this to a pending changelist
+  storeByteInPendingCommit(addr, asc);
+  // fuck you javascript
+  var count = JSON.stringify(pendingCommit).split(':').length-1;
+  $('#changecount')[0].innerHTML = '0x'+shex(count);
 }
 
 function selectAddress(addr, type) {

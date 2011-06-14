@@ -6,6 +6,14 @@ table {
   background-color: #f0f0f0;
 }
 
+#viewport {
+  width: 800px
+}
+
+#controlbox {
+  float: right
+}
+
 #xviroot {
   border-spacing: 2px;
 }

@@ -1,11 +1,26 @@
 <html>
 <head>
 <script src="/eda/js/jquery-1.6.1.min.js"></script>
-<script src="/eda/js/extentmanager.js"></script>
+<script src="/eda/js/dbmanager.js"></script>
 <script src="/eda/js/base.js"></script>
 <link rel="stylesheet" type="text/css" href="xvi.css" />
 </head>
 <body>
+<div id="viewport">
+<div id="controlbox">
+<table>
+<tr>
+<td>clnumber</td>
+<td><span id="clnumber"></span></td>
+<td></td>
+</tr>
+<tr>
+<td>changes</td>
+<td><span id="changecount"></span></td>
+<td><input type="button" value="commit" onclick="handleCommit();" /></td>
+</tr>
+</table>
+</div>
 <table id="xviroot">
   <tr>
     <td>
@@ -20,6 +35,7 @@
   </tr>
 </table>
 <script src="xvi.js"></script>
+</div>
 </body>
 </html>
 
