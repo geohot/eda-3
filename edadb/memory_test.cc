@@ -13,13 +13,14 @@ class MemoryTest : public testing::Test {
       ExtentsMap extents;
       extents.insert(std::make_pair(1337, "geohot"));
       extents.insert(std::make_pair(31337, "George Hotz"));
-      Memory::Inst()->commitExtents(extents);
+      Memory::Inst()->commitExtents(extents);  // this is changelist 1
       ExtentsMap extents2;
       extents2.insert(std::make_pair(31337, "Bob Blick"));
-      Memory::Inst()->commitExtents(extents2);
+      Memory::Inst()->commitExtents(extents2);  // this is changelist 2
       ExtentsReq req;
       req.insert(std::make_pair(31337, 6));
       ExtentsMap resp;
+      // read for changelist 3
       Memory::Inst()->fetchExtents(resp, req, 0, true);
     }
   }
@@ -75,6 +76,20 @@ TEST_F(MemoryTest, ReaderList) {
   EXPECT_EQ(3, *iter);
   iter++;
   EXPECT_TRUE(iter == cll.end());
+}
+
+TEST_F(MemoryTest, WrittenExtents) {
+  ExtentsMap ret;
+  Memory::Inst()->getChangelistWrittenExtents(ret, 1);
+  ExtentsMap::iterator iter = ret.find(31337);
+  EXPECT_EQ("George Hotz", iter->second);
+}
+
+TEST_F(MemoryTest, ReadExtents) {
+  ExtentsMap ret;
+  Memory::Inst()->getChangelistReadExtents(ret, 3);
+  ExtentsMap::iterator iter = ret.find(31337);
+  EXPECT_EQ("Bob Bl", iter->second);
 }
 
 }  // namespace edadb

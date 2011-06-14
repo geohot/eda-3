@@ -18,11 +18,20 @@ Memory::Memory() {
   change_ = 0;
   nullbyte_ = new Byte();
   nullbyte_->commit(0, 0xAA);  // good way of seeing the nulls vs the 00
+
+  // empty histories for the 0 changelist
+  history_written_.resize(1);
+  history_read_.resize(2);
 }
 
 uint64_t Memory::commitExtents(const ExtentsMap& extents) {
   // next changelist is the one we are committing
   change_++;
+
+  // put this in the history
+  history_written_.push_back(extents);
+  history_read_.resize(change_ + 2);  // zero changelist + next changelist
+
   for (map<uint64_t, string>::const_iterator iter = extents.begin();
        iter != extents.end(); ++iter) {
     for (int i = 0; i < iter->second.size(); i++) {
@@ -41,7 +50,7 @@ void Memory::fetchExtents(
     ExtentsMap& _return,
     const ExtentsReq& extentreqs,
     uint64_t changenumber,
-    bool tag) const {
+    bool tag) {
   for (map<uint64_t, uint32_t>::const_iterator iter = extentreqs.begin();
        iter != extentreqs.end(); ++iter) {
     string extent;
@@ -55,6 +64,9 @@ void Memory::fetchExtents(
     }
     _return.insert(make_pair(iter->first, extent));
   }
+
+  // put this in history
+  history_read_[change_ + 1].insert(_return.begin(), _return.end());
 }
 
 void Memory::getMatchingList(ChangelistList& _return,
@@ -69,6 +81,20 @@ void Memory::getWriterList(ChangelistList& _return, uint64_t addr) const {
 // null byte behavior is interesting here, see the exception changelists
 void Memory::getReaderList(ChangelistList& _return, uint64_t addr) const {
   get(addr)->getReaderList(_return);
+}
+
+void Memory::getChangelistWrittenExtents(ExtentsMap& _return,
+                                         uint64_t changenumber) const {
+  if (changenumber <= change_) {
+    _return = history_written_[changenumber];
+  }
+}
+
+void Memory::getChangelistReadExtents(ExtentsMap& _return,
+                                      uint64_t changenumber) const {
+  if (changenumber <= (change_ + 1)) {
+    _return = history_read_[changenumber];
+  }
 }
 
 // private function

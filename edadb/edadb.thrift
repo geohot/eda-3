@@ -29,7 +29,8 @@ service EDAdb {
 
 // TODO(geohot) write this new functions
   // Get changelist extents, not sure where this is stored yet
-  map<i64, binary> getChangelistExtents(1:u64 changenumber)
+  map<i64, binary> getChangelistWrittenExtents(1:i64 changenumber)
+  map<i64, binary> getChangelistReadExtents(1:i64 changenumber)
 
 }
 

@@ -61,6 +61,16 @@ class EDAdbHandler : virtual public EDAdbIf {
   int64_t getMaxChangelist() {
     return Memory::Inst()->getMaxChangelist();
   }
+
+  void getChangelistWrittenExtents(std::map<int64_t, std::string>& _return,
+                                   const int64_t changenumber) {
+    Memory::Inst()->getChangelistWrittenExtents((ExtentsMap&)_return, changenumber);
+  }
+
+  void getChangelistReadExtents(std::map<int64_t, std::string>& _return,
+                                const int64_t changenumber) {
+    Memory::Inst()->getChangelistReadExtents((ExtentsMap&)_return, changenumber);
+  }
 };
 
 int main(int argc, char** argv) {

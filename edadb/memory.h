@@ -8,12 +8,14 @@
 #include <map>
 #include <set>
 #include <string>
+#include <vector>
 
 #include "edadb/byte.h"
 
 using std::set;
 using std::map;
 using std::string;
+using std::vector;
 
 namespace edadb {
 
@@ -33,12 +35,15 @@ class Memory {
       ExtentsMap& _return,
       const ExtentsReq& extentreqs,
       uint64_t changenumber,
-      bool tag) const;
+      bool tag);
 
   void getMatchingList(ChangelistList& _return,
                        const ExtentsMap& extents) const;
   void getWriterList(ChangelistList& _return, uint64_t addr) const;
   void getReaderList(ChangelistList& _return, uint64_t addr) const;
+
+  void getChangelistWrittenExtents(ExtentsMap& _return, uint64_t changenumber) const;
+  void getChangelistReadExtents(ExtentsMap& _return, uint64_t changenumber) const;
 
   uint64_t getMaxChangelist() const { return change_; }
 
@@ -47,6 +52,10 @@ class Memory {
  private:
   map<uint64_t, Byte*> memory_;
   uint64_t change_;
+
+// this tracks all the changelists
+  vector<ExtentsMap> history_written_;
+  vector<ExtentsMap> history_read_;
 
   Byte* get(uint64_t addr) const;
   Byte* nullbyte_;
