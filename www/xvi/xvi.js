@@ -1,56 +1,58 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
+var highlightedChange = 0;
+
+var maxChangeNumber = 0;
+
+// init functions
+
 $(document).ready(function() {
-  renderHexViewport(0x1000, 0x200);
-  selectAddress(0x1000, 'H');
-  initControlBox();
+  renderHexViewport(viewportAddress, viewportLength);
+  selectAddress(viewportAddress, 'H');
+  maxChangeNumber = getMaxChangelist();
+  updateControlBox();
+  initFileBox();
 });
 
-function initControlBox() {
-  var clnumber = getMaxChangelist();
-  $('#clnumber')[0].innerHTML = clnumber;
-  $('#changecount')[0].innerHTML = '0x0';
+function updateControlBox() {
+  $('#clnumber')[0].innerHTML = maxChangeNumber;
+  $('#changecount')[0].innerHTML = '0x'+shex(objcount(pendingCommit));
+  $('#hchangeinput')[0].value = highlightedChange;
+  $('#vchangeinput')[0].value = currentChangeNumber;
 }
 
-// specific functions
-function toPrintable(chr) {
-  if (chr >= 0x20 && chr < 0x80) {
-    return String.fromCharCode(chr);
-  } else if (chr >= 0xA0 && chr < 0x100 && chr != 0xAD) {
-    return String.fromCharCode(chr);
-  } else {
-    return String.fromCharCode(0x1700);
-  }
-}
-
-var selectedAddress = null;
-var selectedType = null;
 
 // stop selecting my shit
 $(document).mousedown(function() { return false; });
 
-// this is about moving
+// **** keyboard high level ****
+
+var keyBindings = {};
+
+function registerKeyHandler(num, fxn) {
+  keyBindings[num] = fxn;
+}
+
 window.onkeydown = function(e) {
-  // i hate xvi32's backspace behavior
-  if (e.which == 37 || e.which == 8) {
-    selectAddress(selectedAddress - 1, selectedType);
-    return false;
-  } else if (e.which == 40) {
-    selectAddress(selectedAddress + 0x10, selectedType);
-    return false;
-  } else if (e.which == 38) {
-    selectAddress(selectedAddress - 0x10, selectedType);
-    return false;
-  } else if (e.which == 39) {
-    selectAddress(selectedAddress + 1, selectedType);
+  if (getSelection().baseNode != null) {
+    return;
+  }
+  var keynum = e.which;
+  if (e.ctrlKey) keynum += CTRL;
+  if (keyBindings[keynum] != null) {
+    keyBindings[keynum](e);
     return false;
   }
 };
 
-var oldWhileTyping = null;
+// *** handle typing ***
 
+var oldWhileTyping = null;
 document.onkeypress = function(e) {
+  if (getSelection().baseNode != null) {
+    return;
+  }
   if (selectedType == 'R') {
     setAddress(selectedAddress, e.charCode);
     selectAddress(selectedAddress + 1, selectedType);
@@ -71,23 +73,12 @@ document.onkeypress = function(e) {
   }
 };
 
-$('#hexdata').delegate('td', 'mousedown', function(){
-  selectAddress(fhex($(this)[0].id.substr(1)), 'H');
-});
-
-$('#rawdata').delegate('td', 'mousedown', function(){
-  selectAddress(fhex($(this)[0].id.substr(1)), 'R');
-});
-
-function handleCommit() {
-  var clnumber = commit();
-  $('#clnumber')[0].innerHTML = clnumber;
-  $('#changecount')[0].innerHTML = '0x0';
-}
-
 function setAddress(addr, asc) {
   $('#H'+shex(selectedAddress))[0].innerHTML = shex(asc, 2);
   $('#R'+shex(selectedAddress))[0].innerHTML = toPrintable(asc);
+
+  $('#H'+shex(selectedAddress)).addClass("incurrentcl");
+  $('#R'+shex(selectedAddress)).addClass("incurrentcl");
 // add this to a pending changelist
   storeByteInPendingCommit(addr, asc);
   // fuck you javascript
@@ -95,52 +86,14 @@ function setAddress(addr, asc) {
   $('#changecount')[0].innerHTML = '0x'+shex(count);
 }
 
-function selectAddress(addr, type) {
-  if (oldWhileTyping != null) {
-    $('#H'+shex(selectedAddress))[0].innerHTML = oldWhileTyping;
-    oldWhileTyping = null;
-  }
-  if (selectedType != type) {
-    if (type == 'H') {
-      $('#hexdata')[0].className = "tselected";
-      $('#rawdata')[0].className = "";
-    } else if (type == 'R') {
-      $('#rawdata')[0].className = "tselected";
-      $('#hexdata')[0].className = "";
-    }
-  }
-  if (selectedAddress != null) {
-    $('#N'+shex(selectedAddress-(selectedAddress%0x10)))[0].className = "";
-    $('#H'+shex(selectedAddress))[0].className = "";
-    $('#R'+shex(selectedAddress))[0].className = "";
-  }
-  selectedAddress = addr;
-  selectedType = type;
-  $('#N'+shex(selectedAddress-(selectedAddress%0x10)))[0].className = "mselected";
-  $('#H'+shex(selectedAddress))[0].className = (selectedType=='H')?'selected':'mselected';
-  $('#R'+shex(selectedAddress))[0].className = (selectedType=='R')?'selected':'mselected';
-}
+// *** handle committing ***
 
-function renderHexViewport(address, length) {
-  var i, j;
-  var numbers = "";
-  var hexdata = "";
-  var rawdata = "";
-  var data = fetchRawAddressRange(address, length);
-  for (i = address; i < (address+length); i+=0x10) {
-    numbers += '<tr><td id="N'+shex(i)+'">' + shex(i) + '</td></tr>';
-    hexdata += '<tr>';
-    rawdata += '<tr>';
-    for (j = i; j < (address+length) && j < (i+0x10); j++) {
-      hexdata += '<td id="H'+shex(j)+'">'+shex(data[j-address], 2)+'</td>';
-      rawdata += '<td id="R'+shex(j)+'">'+toPrintable(data[j-address])+'</td>';
-    }
-    hexdata += '</tr>';
-    rawdata += '</tr>';
+function handleCommit() {
+  for (addr in pendingCommit) {
+    $('#H'+addr).removeClass("incurrentcl");
+    $('#R'+addr).removeClass("incurrentcl");
   }
-  $('#numbers')[0].innerHTML = numbers;
-  $('#hexdata')[0].innerHTML = hexdata;
-  $('#rawdata')[0].innerHTML = rawdata;
-  return true;
+  maxChangeNumber = commit();
+  updateControlBox();
 }
 

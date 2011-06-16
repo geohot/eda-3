@@ -10,16 +10,39 @@
 <div id="controlbox">
 <table>
 <tr>
-<td>clnumber</td>
-<td><span id="clnumber"></span></td>
-<td></td>
+<td>address</td>
+<td colspan = 2>
+<input type="text" class="stealhinput" id="addressinput" />
+</td>
 </tr>
+
+<tr>
+<td>viewing</td>
+<td colspan = 2>
+<input type="text" class="stealhinput" id="vchangeinput" />
+</td>
+</tr>
+
+<tr>
+<td>highlighting</td>
+<td colspan = 2>
+<input type="text" class="stealhinput" id="hchangeinput" />
+</td>
+</tr>
+
+<tr>
+<td>max cl</td>
+<td colspan=2><span id="clnumber"></span></td>
+</tr>
+
 <tr>
 <td>changes</td>
 <td><span id="changecount"></span></td>
 <td><input type="button" value="commit" onclick="handleCommit();" /></td>
 </tr>
 </table>
+
+<div id="dropzone">drop files here</div>
 </div>
 <table id="xviroot">
   <tr>
@@ -35,6 +58,9 @@
   </tr>
 </table>
 <script src="xvi.js"></script>
+<script src="xvi_keyboard.js"></script>
+<script src="xvi_viewport.js"></script>
+<script src="xvi_file.js"></script>
 </div>
 </body>
 </html>

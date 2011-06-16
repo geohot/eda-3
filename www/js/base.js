@@ -6,6 +6,21 @@ function p(printme) {
   console.log(printme);
 }
 
+function objfirst(obj) {
+  for (key in obj) {
+    return key;
+  }
+  return null;
+}
+
+function objcount(obj) {
+  var i = 0;
+  for (key in obj) {
+    i++;
+  }
+  return i;
+}
+
 function shex(num, len) {
   var ret = num.toString(16).toUpperCase();
   if (len != null) {
@@ -26,5 +41,9 @@ function fdec(str) {
 
 function chr(num) {
   return String.fromCharCode(num);
+}
+
+function asc(str) {
+  return str.charCodeAt(0);
 }
 

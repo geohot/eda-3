@@ -1,5 +1,5 @@
 <?php
-error_reporting(E_ALL);
+//error_reporting(E_ALL);
 
 $GLOBALS['THRIFT_ROOT'] = '/root/devtools/thrift-0.6.0/lib/php/src';
 require_once $GLOBALS['THRIFT_ROOT'].'/Thrift.php';
