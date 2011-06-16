@@ -22,9 +22,33 @@ class MemoryTest : public testing::Test {
       ExtentsMap resp;
       // read for changelist 3
       Memory::Inst()->fetchExtents(resp, req, 0, true);
+
+      Memory::Inst()->setTag(1337, "comment", "awesome");
+      Memory::Inst()->setTag(1337, "parsed", "jumper");
+      Memory::Inst()->setTag(1337, "comment", "blows");
+
+      Memory::Inst()->setTag(31337, "bye", "b");
+      Memory::Inst()->setTag(31337, "hi", "a");
+      Memory::Inst()->setTag(31337, "hi", "");
+
+      Extent e;
+      e.addr = 31337;
+      e.len = 4;
+      e.endian = ENDIAN_BIG;
+      Memory::Inst()->setNamedExtent("R0", e);
+      e.endian = ENDIAN_LITTLE;
+      Memory::Inst()->setNamedExtent("R0", e);
     }
   }
 };
+
+TEST_F(MemoryTest, NamedExtent) {
+  Extent e;
+  Memory::Inst()->getNamedExtent(e, "R0");
+  EXPECT_EQ(31337, e.addr);
+  EXPECT_EQ(4, e.len);
+  EXPECT_EQ(ENDIAN_LITTLE, e.endian);
+}
 
 TEST_F(MemoryTest, FetchExtents) {
   ExtentsReq req;
@@ -90,6 +114,20 @@ TEST_F(MemoryTest, ReadExtents) {
   Memory::Inst()->getChangelistReadExtents(ret, 3);
   ExtentsMap::iterator iter = ret.find(31337);
   EXPECT_EQ("Bob Bl", iter->second);
+}
+
+TEST_F(MemoryTest, GetTags) {
+  TagsObject tags;
+  Memory::Inst()->getTags(tags, 1337);
+  EXPECT_EQ("blows", tags["comment"]);
+  EXPECT_EQ("jumper", tags["parsed"]);
+}
+
+TEST_F(MemoryTest, GetEmptyTag) {
+  TagsObject tags;
+  Memory::Inst()->getTags(tags, 31337);
+  EXPECT_EQ("b", tags["bye"]);
+  EXPECT_TRUE(tags.find("hi") == tags.end());
 }
 
 }  // namespace edadb

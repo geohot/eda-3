@@ -3,6 +3,12 @@
 
 namespace cpp edadb
 
+struct ThriftExtent {
+  1:i64 addr,
+  2:i32 len,
+  3:i32 endian,
+}
+
 service EDAdb {
   // returns changelist number of the commit after success
   i64 commitExtents(1:map<i64, binary> extents),
@@ -25,12 +31,22 @@ service EDAdb {
   set<i64> getReaderList(1:i64 address),
 
   // Get highest changelist number
-  i64 getMaxChangelist()
+  i64 getMaxChangelist(),
 
-// TODO(geohot) write this new functions
   // Get changelist extents, not sure where this is stored yet
-  map<i64, binary> getChangelistWrittenExtents(1:i64 changenumber)
-  map<i64, binary> getChangelistReadExtents(1:i64 changenumber)
+  map<i64, binary> getChangelistWrittenExtents(1:i64 changenumber),
+  map<i64, binary> getChangelistReadExtents(1:i64 changenumber),
 
+  // Get and set the tags
+  //   name : R0
+  //   endian : "little"
+  //   parsed : "MOV R0, #1"
+  //   comment : "this is a chicken"
+  //   statelistChangelist : "[R0] <- 1; [PC] <- [PC]+4"
+  map<string, string> getTags(1:i64 address),
+  void setTag(1:i64 address, 2:string tagname, 3:string data),
+
+  void setNamedExtent(1:string name, 2:ThriftExtent extent),
+  ThriftExtent getNamedExtent(1:string name),
 }
 
