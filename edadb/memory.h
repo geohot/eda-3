@@ -24,15 +24,6 @@ typedef map<uint64_t, uint32_t> ExtentsReq;
 
 typedef map<string, string> TagsObject;
 
-#define ENDIAN_BIG 1
-#define ENDIAN_LITTLE 2
-
-typedef struct {
-  uint64_t addr;
-  uint32_t len;
-  uint32_t endian;
-} Extent;
-
 class Memory {
  public:
   static Memory* Inst();
@@ -61,9 +52,6 @@ class Memory {
   void setTag(uint64_t addr, const string& tagname, const string& data);
   void getTags(TagsObject& _return, uint64_t addr) const;
 
-  void setNamedExtent(const string& name, Extent extent);
-  void getNamedExtent(Extent& _return, const string& name) const;
-
  protected:
   Memory();  // Memory is a singleton
  private:
@@ -72,9 +60,6 @@ class Memory {
 
 // storage for the memory metadata
   map<uint64_t, TagsObject> memory_tags_;
-
-// named extent
-  map<string, Extent> named_extent_;
 
 // this tracks all the changelists
   vector<ExtentsMap> history_written_;

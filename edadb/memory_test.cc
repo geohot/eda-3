@@ -30,25 +30,9 @@ class MemoryTest : public testing::Test {
       Memory::Inst()->setTag(31337, "bye", "b");
       Memory::Inst()->setTag(31337, "hi", "a");
       Memory::Inst()->setTag(31337, "hi", "");
-
-      Extent e;
-      e.addr = 31337;
-      e.len = 4;
-      e.endian = ENDIAN_BIG;
-      Memory::Inst()->setNamedExtent("R0", e);
-      e.endian = ENDIAN_LITTLE;
-      Memory::Inst()->setNamedExtent("R0", e);
     }
   }
 };
-
-TEST_F(MemoryTest, NamedExtent) {
-  Extent e;
-  Memory::Inst()->getNamedExtent(e, "R0");
-  EXPECT_EQ(31337, e.addr);
-  EXPECT_EQ(4, e.len);
-  EXPECT_EQ(ENDIAN_LITTLE, e.endian);
-}
 
 TEST_F(MemoryTest, FetchExtents) {
   ExtentsReq req;

@@ -115,23 +115,6 @@ void Memory::getTags(TagsObject& _return, uint64_t addr) const {
   }
 }
 
-void Memory::setNamedExtent(const string& name, Extent extent) {
-  map<string, Extent>::iterator iter = named_extent_.insert(make_pair(name, extent)).first;
-  if (extent.len == 0) {
-    named_extent_.erase(iter);
-  } else {
-    iter->second = extent;
-  }
-}
-
-void Memory::getNamedExtent(Extent& _return, const string& name) const {
-  map<string, Extent>::const_iterator iter = named_extent_.find(name);
-  if (iter != named_extent_.end()) {
-    _return = iter->second;
-  }
-}
-
-
 // private function
 Byte* Memory::get(uint64_t addr) const {
   map<uint64_t, Byte*>::const_iterator byte = memory_.find(addr);

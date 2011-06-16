@@ -79,22 +79,6 @@ class EDAdbHandler : virtual public EDAdbIf {
   void setTag(const int64_t address, const std::string& tagname, const std::string& data) {
     Memory::Inst()->setTag(address, tagname, data);
   }
-
-  void setNamedExtent(const std::string& name, const ThriftExtent& textent) {
-    Extent extent;
-    extent.addr = textent.addr;
-    extent.len = textent.len;
-    extent.endian = textent.endian;
-    Memory::Inst()->setNamedExtent(name, extent);
-  }
-
-  void getNamedExtent(ThriftExtent& _return, const std::string& name) {
-    Extent extent;
-    Memory::Inst()->getNamedExtent(extent, name);
-    _return.addr = extent.addr;
-    _return.len = extent.len;
-    _return.endian = extent.endian;
-  }
 };
 
 int main(int argc, char** argv) {
