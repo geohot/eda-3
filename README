@@ -5,6 +5,7 @@ edadb/ -- the backend storage system for raw ram
   memory.* -- the Memory class
 www/ -- the directory root(ish) of apache
   edadb/ -- PHP endpoints to access the EDAdb
+  ida/ -- nice graph viewer webapp
   js/ -- common javascript files
     base.js -- basic functions that should be a part of core javascript(not EDA specific)
     dbmanager.js -- the client side version of the edadb

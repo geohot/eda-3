@@ -37,8 +37,16 @@ service EDAdb {
   //   endian : "little"
   //   parsed : "MOV R0, #1"
   //   comment : "this is a chicken"
+  //   infunction : 31330
   //   statelistChangelist : "[R0] <- 1; [PC] <- [PC]+4"
+
+  // Or
+  //   slaveto : 31337
   map<string, string> getTags(1:i64 address),
   void setTag(1:i64 address, 2:string tagname, 3:string data),
+
+  // this is the accessor used by tid
+  // currently poorly imped
+  map<i64, map<string, string>> getTagsInRange(1:i64 address_start, 2:i64 address_end),
 }
 

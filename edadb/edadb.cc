@@ -79,6 +79,22 @@ class EDAdbHandler : virtual public EDAdbIf {
   void setTag(const int64_t address, const std::string& tagname, const std::string& data) {
     Memory::Inst()->setTag(address, tagname, data);
   }
+
+  void getTagsInRange(std::map<int64_t, std::map<std::string, std::string> > & _return,
+                      const int64_t address_start,
+                      const int64_t address_end) {
+    // this is a naive way of writing this
+    uint64_t i;
+    uint64_t start = address_start;
+    uint64_t end = address_end;
+    for (i = start; i < end; i++) {
+      std::map<std::string, std::string> _retlocal;
+      Memory::Inst()->getTags(_retlocal, i);
+      if (_retlocal.size() > 0) {
+        _return.insert(std::make_pair(i,_retlocal));
+      }
+    }
+  }
 };
 
 int main(int argc, char** argv) {
