@@ -48,6 +48,7 @@ registerKeyHandler(DOWNARROW, function() {
 });
 
 registerKeyHandler(PAGEUP, function() {
+  if (viewportAddress - (viewportLength - viewportWidth) < 0) return;
   viewportAddress -= viewportLength - viewportWidth;
   renderHexViewport(viewportAddress, viewportLength);
   selectAddress(selectedAddress - (viewportLength - viewportWidth), selectedType);
@@ -152,4 +153,22 @@ $('#vchangeinput')[0].onkeydown = function(e) {
     selectAddress(selectedAddress, selectedType);
   }
 };
+
+$('#tageditor')[0].onkeydown = function(e) {
+  if (e.keyCode == 13) {
+    e.target.blur();
+    if (e.target.id == "tagdata") {
+      var name = $("#tagname")[0].value;
+      if (name.length > 0) {
+        setTag(selectedAddress, name, $("#tagdata")[0].value);
+        updateTagsForAddress(selectedAddress);
+      }
+    } else if (e.target.id.substr(0, 8) == "tagdata_") {
+      var name = e.target.id.substr(8);
+      setTag(selectedAddress, name, e.target.value);
+      updateTagsForAddress(selectedAddress);
+    }
+  }
+};
+
 

@@ -45,6 +45,8 @@ function rawcommit(address, data) {
   var req = new XMLHttpRequest();
   // maybe could be async one day
   req.open('POST', '/eda/edadb/rawcommit.php?addr='+address, false);
+  req.asBlob = true;
+  req.overrideMimeType('text/plain; charset=x-user-defined');
   req.send(data);
   return fdec(req.response);
 }
@@ -52,6 +54,13 @@ function rawcommit(address, data) {
 function getcommit(clnumber) {
   var req = new XMLHttpRequest();
   req.open('GET', '/eda/edadb/getchangelist.php?n='+clnumber, false);
+  req.send(null);
+  return jQuery.parseJSON(req.response);
+}
+
+function getcommitextents(clnumber) {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/edadb/getchangelistextents.php?n='+clnumber, false);
   req.send(null);
   return jQuery.parseJSON(req.response);
 }
@@ -64,4 +73,28 @@ function getMaxChangelist() {
   return fdec(req.response);
 }
 
+function setTag(addr, name, data) {
+  var req = new XMLHttpRequest();
+  req.open('POST', '/eda/edadb/settag.php?addr='+addr+"&tagname="+name, false);
+  req.send(data);
+}
+
+function getTags(addr) {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/edadb/gettags.php?addr='+addr, false);
+  req.send(null);
+  return jQuery.parseJSON(req.response);
+}
+
+function getTagsAsync(addr, callback) {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/edadb/gettags.php?addr='+addr, true);
+  // omg closure
+  req.onreadystatechange = function() {
+    if (req.readyState == 4) {
+      callback(jQuery.parseJSON(req.response));
+    }
+  };
+  req.send(null);
+}
 

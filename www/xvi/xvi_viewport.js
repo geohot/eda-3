@@ -3,7 +3,7 @@
 
 // this is the viewport drawing functions
 
-var viewportAddress = 0x1000;
+var viewportAddress = 0;
 var viewportLength = 0x200;
 var viewportWidth = 0x10;
 
@@ -23,7 +23,7 @@ function highlightChange(vc) {
     selectAddress(selectedAddress, 'H');
     return;
   }
-  highlightedCommit = getcommit(highlightedChange);
+  highlightedCommit = getcommitextents(highlightedChange);
   var fc = fhex(objfirst(highlightedCommit));
   if (fc != null) {
     if (!addressOnScreen(fc)) {
@@ -54,6 +54,8 @@ $('#rawdata').delegate('td', 'mousedown', function(){
 });
 
 function selectAddress(addr, type, selectAtBottom) {
+  if (addr < 0) return;
+  updateTagsForAddress(addr);
   if (!addressOnScreen(addr)) {
     viewportAddress = addr-(addr%viewportWidth);
     if (selectAtBottom == true) {
@@ -86,6 +88,26 @@ function selectAddress(addr, type, selectAtBottom) {
   $('#R'+shex(selectedAddress)).addClass((selectedType=='R')?'selected':'mselected');
 }
 
+function updateTagsForAddress(address) {
+  getTagsAsync(address, updateTagsTable);
+}
+
+function updateTagsTable(tags) {
+  var tabledata = "";
+  for (tagname in tags) {
+    tabledata += '<tr>';
+    tabledata += '<td>'+tagname+'</td>';
+    tabledata += '<td><input size=30 type="text" class="stealthinput" id="tagdata_'+tagname+'" value="'+tags[tagname]+'"/></td>';
+    tabledata += '</tr>';
+  }
+  tabledata += '<tr>';
+  tabledata += '<td><input size=10 type="text" class="stealthinput" id="tagname" /></td>';
+  tabledata += '<td><input size=30 type="text" class="stealthinput" id="tagdata" /></td>';
+  tabledata += '</tr>';
+
+  $('#tageditor')[0].innerHTML = tabledata;
+}
+
 function addressOnScreen(address) {
   if (address >= viewportAddress && address < (viewportAddress + viewportLength)) {
     return true;
@@ -107,7 +129,14 @@ function renderHexViewport(address, length) {
     rawdata += '<tr>';
     for (j = i; j < (address+length) && j < (i+viewportWidth); j++) {
       classes = (pendingCommit[shex(j)] != null)?"incurrentcl":"";
-      classes += (highlightedCommit[shex(j)] != null)?"inpastcl":"";
+
+      // this is so shitty
+      for (key in highlightedCommit) {
+        if (fhex(key) <= j && j < fhex(key)+highlightedCommit[key]) {
+          classes += "inpastcl";
+          break;
+        }
+      }
       hexdata += '<td class="'+classes+'" id="H'+shex(j)+'">'+shex(data[j-address], 2)+'</td>';
       rawdata += '<td class="'+classes+'" id="R'+shex(j)+'">'+toPrintable(data[j-address])+'</td>';
     }

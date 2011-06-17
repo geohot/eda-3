@@ -1,9 +1,7 @@
 <?php
 require_once('thrift.php');
 
-$handle = fopen('php://input','r');
-$jsonInput = fgets($handle);
-fclose($handle);
+$jsonInput = file_get_contents('php://input');
 $data = json_decode($jsonInput);
 
 $commitdata = array();

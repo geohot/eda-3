@@ -30,7 +30,7 @@ function handleFileDrop(e) {
     $('#dropzone')[0].innerHTML = "reading file";
     var reader = new FileReader();
     reader.onloadend = handleFileReadDone;
-    reader.readAsBinaryString(file);
+    reader.readAsArrayBuffer(file);
   }
 }
 
@@ -39,6 +39,6 @@ function handleFileReadDone(e) {
   $('#dropzone')[0].innerHTML = "uploaded at 0x"+shex(fileAddress);
   updateControlBox();
   // highlight the new shit
-  highlightChange(clnumber);
+  highlightChange(maxChangeNumber);
 }
 

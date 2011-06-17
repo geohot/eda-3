@@ -11,7 +11,11 @@ table {
 }
 
 #controlbox {
-  float: right
+  float: right;
+}
+
+#controlparams {
+  width: 300px;
 }
 
 #xviroot {
@@ -24,12 +28,16 @@ table {
   border-color: black;
 }
 
-.stealhinput {
+.stealthinput {
   margin: 0px;
   background-color: #f0f0f0;
   border: 0px;
   font-family: Courier New;
   font-size: 8pt;
+}
+
+#tageditor {
+  margin-top: 25px;
 }
 
 #dropzone {
@@ -40,7 +48,7 @@ table {
   padding-top: 85px;
   text-align: center;
   border-style: dashed;
-  margin-top: 50px;
+  margin-top: 25px;
   border-color: #c0c0c0;
   color: #c0c0c0;
 }

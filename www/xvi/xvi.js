@@ -24,7 +24,8 @@ function updateControlBox() {
 
 
 // stop selecting my shit
-$(document).mousedown(function() { return false; });
+//$("#xviroot").mousedown(function() { return false; });
+document.onselectstart = function() { return false; };
 
 // **** keyboard high level ****
 

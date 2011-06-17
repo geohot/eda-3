@@ -73,10 +73,12 @@ class EDAdbHandler : virtual public EDAdbIf {
   }
 
   void getTags(std::map<std::string, std::string> & _return, const int64_t address) {
+    cout << "getting tags of " << address << endl;
     Memory::Inst()->getTags(_return, address);
   }
 
   void setTag(const int64_t address, const std::string& tagname, const std::string& data) {
+    cout << "setting tag " << tagname << " of " << address << " to " << data << endl;
     Memory::Inst()->setTag(address, tagname, data);
   }
 
