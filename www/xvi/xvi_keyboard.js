@@ -48,10 +48,17 @@ registerKeyHandler(DOWNARROW, function() {
 });
 
 registerKeyHandler(PAGEUP, function() {
-  if (viewportAddress - (viewportLength - viewportWidth) < 0) return;
-  viewportAddress -= viewportLength - viewportWidth;
-  renderHexViewport(viewportAddress, viewportLength);
-  selectAddress(selectedAddress - (viewportLength - viewportWidth), selectedType);
+  if (viewportAddress - (viewportLength - viewportWidth) < 0) {
+    if (viewportAddress != 0) {
+      viewportAddress = 0;
+      renderHexViewport(viewportAddress, viewportLength);
+    }
+    selectAddress(selectedAddress % viewportWidth, selectedType);
+  } else {
+    viewportAddress -= viewportLength - viewportWidth;
+    renderHexViewport(viewportAddress, viewportLength);
+    selectAddress(selectedAddress - (viewportLength - viewportWidth), selectedType);
+  }
 });
 
 registerKeyHandler(PAGEDOWN, function() {
