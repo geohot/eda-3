@@ -39,11 +39,20 @@ function fdec(str) {
   return parseInt(str, 10);
 }
 
+function fnum(str) {
+  if (str.substr(0,2) == "0x") {
+    return fhex(str);
+  } else {
+    return fdec(str);
+  }
+}
+
 function chr(num) {
   return String.fromCharCode(num);
 }
 
-function asc(str) {
-  return str.charCodeAt(0);
+function asc(str, offset) {
+  if (offset == null) offset = 0;
+  return str.charCodeAt(offset);
 }
 

@@ -22,6 +22,10 @@ Memory::Memory() {
   // empty histories for the 0 changelist
   history_written_.resize(1);
   history_read_.resize(2);
+
+  // changelist 1 is empty
+  ExtentsMap empty;
+  commitExtents(empty);
 }
 
 uint64_t Memory::commitExtents(const ExtentsMap& extents) {

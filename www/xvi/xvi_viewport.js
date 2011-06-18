@@ -6,6 +6,7 @@
 var viewportAddress = 0;
 var viewportLength = 0x200;
 var viewportWidth = 0x10;
+var viewportData;
 
 var selectedAddress = null;
 var selectedType = null;
@@ -24,14 +25,18 @@ function highlightChange(vc) {
     return;
   }
   highlightedCommit = getcommitextents(highlightedChange);
-  var fc = fhex(objfirst(highlightedCommit));
+  var fc = objfirst(highlightedCommit);
   if (fc != null) {
+    fc = fhex(fc);
     if (!addressOnScreen(fc)) {
       selectAddress(fc, 'H');
     } else {
       renderHexViewport(viewportAddress, viewportLength);
       selectAddress(selectedAddress, selectedType);
     }
+  } else {
+    renderHexViewport(viewportAddress, viewportLength);
+    selectAddress(selectedAddress, selectedType);
   }
 }
 
@@ -88,26 +93,6 @@ function selectAddress(addr, type, selectAtBottom) {
   $('#R'+shex(selectedAddress)).addClass((selectedType=='R')?'selected':'mselected');
 }
 
-function updateTagsForAddress(address) {
-  getTagsAsync(address, updateTagsTable);
-}
-
-function updateTagsTable(tags) {
-  var tabledata = "";
-  for (tagname in tags) {
-    tabledata += '<tr>';
-    tabledata += '<td>'+tagname+'</td>';
-    tabledata += '<td><input size=30 type="text" class="stealthinput" id="tagdata_'+tagname+'" value="'+tags[tagname]+'"/></td>';
-    tabledata += '</tr>';
-  }
-  tabledata += '<tr>';
-  tabledata += '<td><input size=10 type="text" class="stealthinput" id="tagname" /></td>';
-  tabledata += '<td><input size=30 type="text" class="stealthinput" id="tagdata" /></td>';
-  tabledata += '</tr>';
-
-  $('#tageditor')[0].innerHTML = tabledata;
-}
-
 function addressOnScreen(address) {
   if (address >= viewportAddress && address < (viewportAddress + viewportLength)) {
     return true;
@@ -121,7 +106,7 @@ function renderHexViewport(address, length) {
   var numbers = "";
   var hexdata = "";
   var rawdata = "";
-  var data = fetchRawAddressRange(address, length, currentChangeNumber);
+  viewportData = fetchRawAddressRange(address, length, currentChangeNumber);
   $('#addressinput')[0].value = shex(address);
   for (i = address; i < (address+length); i+=viewportWidth) {
     numbers += '<tr><td id="N'+shex(i)+'">' + shex(i) + '</td></tr>';
@@ -137,8 +122,10 @@ function renderHexViewport(address, length) {
           break;
         }
       }
-      hexdata += '<td class="'+classes+'" id="H'+shex(j)+'">'+shex(data[j-address], 2)+'</td>';
-      rawdata += '<td class="'+classes+'" id="R'+shex(j)+'">'+toPrintable(data[j-address])+'</td>';
+      hexdata += '<td class="'+classes+'" id="H'+shex(j)+'">'
+      hexdata += shex(viewportData[j-address], 2)+'</td>';
+      rawdata += '<td class="'+classes+'" id="R'+shex(j)+'">'
+      rawdata += toPrintable(viewportData[j-address])+'</td>';
     }
     hexdata += '</tr>';
     rawdata += '</tr>';

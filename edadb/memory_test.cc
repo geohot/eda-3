@@ -9,7 +9,7 @@ namespace edadb {
 class MemoryTest : public testing::Test {
  protected:
   virtual void SetUp() {
-    if (Memory::Inst()->getMaxChangelist() == 0) {
+    if (Memory::Inst()->getMaxChangelist() == 1) {
       ExtentsMap extents;
       extents.insert(std::make_pair(1337, "geohot"));
       extents.insert(std::make_pair(31337, "George Hotz"));
@@ -48,19 +48,19 @@ TEST_F(MemoryTest, FetchExtentsOldChange) {
   ExtentsReq req;
   req.insert(std::make_pair(31337, 6));
   ExtentsMap resp;
-  Memory::Inst()->fetchExtents(resp, req, 1, false);
+  Memory::Inst()->fetchExtents(resp, req, 2, false);
   EXPECT_EQ("George", resp[31337]);
 }
 
 TEST_F(MemoryTest, MaxChangelist) {
-  EXPECT_EQ(2, Memory::Inst()->getMaxChangelist());
+  EXPECT_EQ(3, Memory::Inst()->getMaxChangelist());
 }
 
 TEST_F(MemoryTest, NullByte) {
   ExtentsReq req;
   req.insert(std::make_pair(131337, 1));
   ExtentsMap resp;
-  Memory::Inst()->fetchExtents(resp, req, 1, false);
+  Memory::Inst()->fetchExtents(resp, req, 2, false);
   string eq;
   eq.push_back(0xAA);
   EXPECT_EQ(eq, resp[131337]);
@@ -70,9 +70,9 @@ TEST_F(MemoryTest, WriterList) {
   ChangelistList cll;
   Memory::Inst()->getWriterList(cll, 31337);
   ChangelistList::iterator iter = cll.begin();
-  EXPECT_EQ(1, *iter);
-  iter++;
   EXPECT_EQ(2, *iter);
+  iter++;
+  EXPECT_EQ(3, *iter);
   iter++;
   EXPECT_TRUE(iter == cll.end());
 }
@@ -81,21 +81,21 @@ TEST_F(MemoryTest, ReaderList) {
   ChangelistList cll;
   Memory::Inst()->getReaderList(cll, 31337+3);
   ChangelistList::iterator iter = cll.begin();
-  EXPECT_EQ(3, *iter);
+  EXPECT_EQ(4, *iter);
   iter++;
   EXPECT_TRUE(iter == cll.end());
 }
 
 TEST_F(MemoryTest, WrittenExtents) {
   ExtentsMap ret;
-  Memory::Inst()->getChangelistWrittenExtents(ret, 1);
+  Memory::Inst()->getChangelistWrittenExtents(ret, 2);
   ExtentsMap::iterator iter = ret.find(31337);
   EXPECT_EQ("George Hotz", iter->second);
 }
 
 TEST_F(MemoryTest, ReadExtents) {
   ExtentsMap ret;
-  Memory::Inst()->getChangelistReadExtents(ret, 3);
+  Memory::Inst()->getChangelistReadExtents(ret, 4);
   ExtentsMap::iterator iter = ret.find(31337);
   EXPECT_EQ("Bob Bl", iter->second);
 }

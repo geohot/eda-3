@@ -1,0 +1,37 @@
+.i_tab {
+  width: 60px;
+  float: left;
+}
+
+.i_opcode {
+  color: navy;
+}
+
+.i_condition {
+  color: purple;
+}
+
+.i_flags {
+  color: purple;
+}
+
+.i_immed {
+  color: green;
+}
+
+.i_address {
+  color: #A03327;
+}
+
+.i_location {
+  color: gray;
+}
+
+.comment {
+  color: #0000FF;
+}
+
+.i_dump {
+  color: #0000FF;
+}
+
