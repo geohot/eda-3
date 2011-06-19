@@ -12,3 +12,9 @@ www/ -- the directory root(ish) of apache
     jquery-1.6.1.min.js -- jquery
   xvi/ -- xvi32 hex editor webapp
 
+Build instructions:
+* create a build dir outside the eda-3 dir and cmake eda-3/edadb
+* do make in build dir and ./edadb
+* symlink the www directory to http://yourcomp/eda/
+* visit http://yourcomp/eda/ and pick a tool :)
+
