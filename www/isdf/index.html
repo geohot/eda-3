@@ -7,9 +7,9 @@
 <script src="/eda/js/objecteditor.js"></script>
 <link rel="stylesheet" type="text/css" href="/eda/xvi/xvi.css" />
 <link rel="stylesheet" type="text/css" href="/eda/css/parsed.css" />
+<link rel="stylesheet" type="text/css" href="isdf.css" />
 </head>
 <body>
-<div id="viewport">
 <table>
 <tr><td>instruction set</td><td>
 <input id="iset" onchange="setiset(this.value)"/></td></tr>
@@ -17,25 +17,26 @@
 <input id="endian" onchange="setendian(this.value)"/></td></tr>
 <tr><td>save</td><td>
 <input type="button" onclick="savetoserver()" value="to server" /></td></tr>
+<tr><td>load</td><td>
+<input type="button" onclick="loadfromserver()" value="from server" /></td></tr>
 </table>
 <br/>
+<div id="testdiv">
 <table>
 <tr><td>test start</td><td>
 <input id="teststart" value="62C"/></td></tr>
 <tr><td>test length</td><td>
-<input id="testlength" value="30"/></td></tr>
+<input id="testlength" value="50"/></td></tr>
 <tr><td>test skip</td><td>
 <input id="testskip" value="2"/></td></tr>
 <tr><td>test run</td>
 <td><input type="button" onclick="runtest()" value="click here"/></td></tr>
 </table>
-<br/>
+<table id="testresults"></table>
+</div>
 <table id="localeditor"></table>
 <br/>
 <table id="parsededitor"></table>
-<br/>
-<table id="testresults"></table>
-</div>
 <script src="isdf.js"></script>
 </body>
 </html>

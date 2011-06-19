@@ -3,6 +3,7 @@
 
 var iset;
 var endian;
+var unsaved;
 
 $(document).ready(function() {
   setiset('thumb');
@@ -13,6 +14,28 @@ function savetoserver() {
   var req = new XMLHttpRequest();
   req.open('POST', '/eda/isdf/saveiset.php', false);
   req.send(package_iset());
+  unsaved = false;
+}
+
+function loadfromserver() {
+  if (unsaved == true) {
+    alert('you have unsaved changes!');
+    return;
+  }
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/isdf/loadiset.php?iset='+iset, false);
+  req.send(null);
+  var big_obj = jQuery.parseJSON(req.response);
+  if (big_obj['iset'] != iset) {
+    p('load failed');
+    return;
+  }
+
+  localStorage[iset+'_local'] = JSON.stringify(big_obj['local']);
+  localStorage[iset+'_parsed'] = JSON.stringify(big_obj['parsed']);
+  localStorage[iset+'_endian'] = big_obj['endian'];
+
+  setiset(iset);
 }
 
 function package_iset() {
@@ -40,13 +63,23 @@ function runtest() {
   p(rawdata);
 
   var i;
-  for (i=0;i<testlength;i+=testskip) {
-    var parsed = parseInstruction(teststart+i, rawdata.subarray(i));
+  for (i=0;i<testlength;) {
+    var parseobj = parseInstruction(teststart+i, rawdata.subarray(i));
+    if (parseobj == null) {
+      ret += '<tr><td>';
+      ret += shex(teststart+i)+'</td><td>';
+      ret += displayDumpFromRaw(testskip, rawdata.subarray(i));
+      ret += '</td><td>invalid</td></tr>';
+      i += testskip;
+      continue;
+    }
+
     ret += '<tr><td>';
-    ret += displayDumpFromRaw(testskip, rawdata.subarray(i));
-    ret += '</td><td>'+parsed+'</td><td>';
-    ret += displayParsed(parsed);
+    ret += shex(teststart+i)+'</td><td>';
+    ret += displayDumpFromRaw(testskip, rawdata.subarray(i))+'</td><td>';
+    ret += displayParsed(parseobj['parsed']);
     ret += '</td></tr>';
+    i += parseobj['len'];
   }
 
   $('#testresults')[0].innerHTML = ret;
@@ -60,6 +93,7 @@ function setiset(new_iset) {
   $('#endian')[0].value = endian;
   localSaveCallback(null, null, 'local');
   localSaveCallback(null, null, 'parsed');
+  unsaved = false;
 }
 
 function setendian(new_endian) {
@@ -86,6 +120,7 @@ function localSaveCallback(key, value, name) {
     localStorage[iset+'_'+name] = JSON.stringify(locale);
   }
   updateObjectEditor(name, locale, 40, 150);
+  unsaved = true;
 }
 
 var local_built = "";
@@ -151,7 +186,7 @@ function parseInstruction(addr, rawdata) {
       break;
     }
   }
-  if (meta_matched == false) return "invalid";
+  if (meta_matched == false) return null;
 
   for (var meta_i = 0; meta_i < meta_obj['letters'].length; meta_i++) {
     var meta_c = meta_obj['letters'].substr(meta_i, 1);
@@ -165,6 +200,9 @@ function parseInstruction(addr, rawdata) {
       eval(meta_c+' |= '+meta_bit);
     }
   }
-  return eval(meta_obj['out']);
+  var meta_retobj = {};
+  meta_retobj['len'] = meta_obj['bytecount'];
+  meta_retobj['parsed'] = eval(meta_obj['out']);
+  return meta_retobj;
 }
 
