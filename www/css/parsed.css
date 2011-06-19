@@ -24,7 +24,7 @@
 }
 
 .i_location {
-  color: gray;
+  color: #996600;
 }
 
 .comment {
@@ -35,3 +35,18 @@
   color: #0000FF;
 }
 
+.f_A {
+  color: blue;
+}
+
+.f_O {
+  color: green;
+}
+
+.f_C {
+  color: orange;
+}
+
+.f_R {
+  color: gray;
+}

@@ -24,13 +24,16 @@
 <div id="testdiv">
 <table>
 <tr><td>test start</td><td>
-<input id="teststart" value="62C"/></td></tr>
+<input id="teststart" value="3A30"/></td></tr>
 <tr><td>test length</td><td>
 <input id="testlength" value="50"/></td></tr>
 <tr><td>test skip</td><td>
 <input id="testskip" value="2"/></td></tr>
 <tr><td>test run</td>
-<td><input type="button" onclick="runtest()" value="click here"/></td></tr>
+<td>
+<input type="button" onclick="runtest(false)" value="test"/>
+<input type="button" onclick="runtest(true)" style="color:red" value="commit"/>
+</td></tr>
 </table>
 <table id="testresults"></table>
 </div>

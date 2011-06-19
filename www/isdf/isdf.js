@@ -7,7 +7,7 @@ var unsaved;
 
 $(document).ready(function() {
   setiset('thumb');
-  runtest();
+  runtest(false);
 });
 
 function savetoserver() {
@@ -47,24 +47,25 @@ function package_iset() {
   return JSON.stringify(big_obj);
 }
 
-function runtest() {
+function runtest(commitflag) {
   var teststart = fhex($('#teststart')[0].value);
   var testlength = fhex($('#testlength')[0].value);
   var testskip = fhex($('#testskip')[0].value);
   p("test "+teststart+" "+testlength);
 
-  var rawdata = fetchRawAddressRange(teststart, testlength);
+  var rawdata = fetchRawAddressRange(teststart, testlength+0x10);
 
   var ret = '';
 
   rebuildParser();
-  p("rebuilt");
+  //p("rebuilt");
 
-  p(rawdata);
+  //p(rawdata);
 
   var i;
   for (i=0;i<testlength;) {
     var parseobj = parseInstruction(teststart+i, rawdata.subarray(i));
+    //p(parseobj);
     if (parseobj == null) {
       ret += '<tr><td>';
       ret += shex(teststart+i)+'</td><td>';
@@ -74,10 +75,24 @@ function runtest() {
       continue;
     }
 
+    if (commitflag == true) {
+      var addr = teststart+i;
+      setTag(addr, 'iset', iset);
+      setTag(addr, 'endian', endian);
+      setTag(addr, 'len', parseobj['len']);
+      if (parseobj['flow'] !== undefined) {
+        setTag(addr, 'flow', parseobj['flow']);
+      }
+      setTag(addr, 'parsed', parseobj['parsed']);
+    }
+
     ret += '<tr><td>';
     ret += shex(teststart+i)+'</td><td>';
-    ret += displayDumpFromRaw(testskip, rawdata.subarray(i))+'</td><td>';
-    ret += displayParsed(parseobj['parsed']);
+    ret += displayDumpFromRaw(parseobj['len'], rawdata.subarray(i))+'</td><td>';
+    ret += displayParsed(parseobj['parsed'])+'</td>';
+    if (parseobj['flow'] !== undefined) {
+      ret += '<td>'+parseobj['flow'];
+    }
     ret += '</td></tr>';
     i += parseobj['len'];
   }
@@ -201,8 +216,31 @@ function parseInstruction(addr, rawdata) {
     }
   }
   var meta_retobj = {};
+
+// these are functions accessible to the parser
+  var addFlow = function(addr, t) {
+    if (meta_retobj['flow'] == undefined) {
+      meta_retobj['flow'] = [];
+    }
+    meta_retobj['flow'].push(t+shex(addr));
+    return addr;
+  };
+
+  var addReturn = function() {
+    if (meta_retobj['flow'] == undefined) {
+      meta_retobj['flow'] = [];
+    }
+    meta_retobj['flow'].push('R');
+    return '';
+  };
+
+
   meta_retobj['len'] = meta_obj['bytecount'];
   meta_retobj['parsed'] = eval(meta_obj['out']);
+  if (meta_retobj['flow'] !== undefined) {
+    var meta_flow = JSON.stringify(meta_retobj['flow']);
+    meta_retobj['flow'] = meta_flow.replace(/"/g, '\'');
+  }
   return meta_retobj;
 }
 
