@@ -77,6 +77,21 @@ function setTag(addr, name, data) {
   var req = new XMLHttpRequest();
   req.open('POST', '/eda/edadb/settag.php?addr='+addr+"&tagname="+name, false);
   req.send(data);
+  invalidateTagCache(addr);
+}
+
+var tagCache = {};
+
+function getTagsCached(addr) {
+  if (tagCache[addr] === undefined) {
+    //p('cache miss');
+    tagCache[addr] = getTags(addr);
+  }
+  return tagCache[addr];
+}
+
+function invalidateTagCache(addr) {
+  delete tagCache[addr];
 }
 
 function getTags(addr) {

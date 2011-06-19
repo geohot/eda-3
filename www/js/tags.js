@@ -52,9 +52,10 @@ function parseImmed(immed) {
 }
 
 // this shouldn't have to do a network fetch
+// and now we have a cache
 function parseLocation(ss) {
   var addr = fnum(ss);
-  var tags = getTags(addr);
+  var tags = getTagsCached(addr);
   if (tags['name'] !== undefined) {
     return tags['name'];
   } else {

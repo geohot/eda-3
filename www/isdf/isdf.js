@@ -20,6 +20,7 @@ function runtest() {
   var ret = '';
 
   rebuildParser();
+  p("rebuilt");
 
   var i;
   for (i=0;i<testlength;i+=testskip) {
@@ -32,6 +33,7 @@ function runtest() {
   }
 
   $('#testresults')[0].innerHTML = ret;
+  p("test done");
 }
 
 function setiset(new_iset) {
@@ -113,48 +115,25 @@ function rebuildParser() {
 
 // addr is available to the inside functions, hence no meta
 function parseInstruction(addr, meta_inst) {
-  /*var meta_local = jQuery.parseJSON(localStorage[iset+'_local']);
-  var meta_parsed = jQuery.parseJSON(localStorage[iset+'_parsed']);
+  eval(local_built);
 
-  for (meta_f in meta_local) {
-    var meta_fname = meta_f.substr(0, meta_f.indexOf('('));
-    var meta_fparams = meta_f.substr(meta_f.indexOf('('));
-    eval('var '+meta_fname+' = function'+meta_fparams+'{'+meta_local[meta_f]+'};');
-  }
-
-  // this could build a fast array for this
   var meta_matched = false;
-  for (meta_k in meta_parsed) {
-    var meta_mask = 0;
-    var meta_match = 0;
-    var meta_letters = '';
-    for (var meta_i = 0; meta_i < meta_k.length; meta_i++) {
-      var meta_c = meta_k.substr(meta_i, 1);
-      if (('01*'+meta_letters).indexOf(meta_c) == -1) {
-        meta_letters += meta_c;
-      }
-      //p(meta_c);
-      meta_mask <<= 1;
-      meta_match <<= 1;
-      meta_mask |= (meta_c == '0' || meta_c == '1');
-      meta_match |= (meta_c == '1');
-    }
-    if ( (meta_inst & meta_mask) == meta_match) {
-      p("match: "+meta_k+" "+meta_letters);
+  for (var meta_i = 0; meta_i < parsed_built.length; meta_i++) {
+    var meta_obj = parsed_built[meta_i];
+    if ( (meta_inst & meta_obj['mask']) == meta_obj['match']) {
       meta_matched = true;
       break;
     }
-  }*/
-
-  eval(local_built);
+  }
   if (meta_matched == false) return "invalid";
+
   for (var meta_i = 0; meta_i < meta_obj['letters'].length; meta_i++) {
     var meta_c = meta_obj['letters'].substr(meta_i, 1);
     eval('var '+meta_c+' = 0');
   }
   for (var meta_i = 0; meta_i < meta_obj['k'].length; meta_i++) {
     var meta_c = meta_obj['k'].substr(meta_i, 1);
-    if (meta_letters.indexOf(meta_c) != -1) {
+    if (meta_obj['letters'].indexOf(meta_c) != -1) {
       var meta_bit = (meta_inst >> ((meta_obj['k'].length-1)-meta_i)) & 1;
       eval(meta_c+' <<= 1');
       eval(meta_c+' |= '+meta_bit);
