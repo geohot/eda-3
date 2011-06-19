@@ -51,6 +51,25 @@ function chr(num) {
   return String.fromCharCode(num);
 }
 
+function immed(length, endian, rawdata, offset) {
+  var i;
+  var addr = offset;
+  if (endian == 'little') {
+    addr += length-1;
+  }
+  var ret = 0;
+  for (i=0;i<length;i++) {
+    ret <<= 8;
+    ret |= rawdata[addr];
+    if (endian == 'little') {
+      addr -= 1;
+    } else {
+      addr += 1;
+    }
+  }
+  return ret;
+}
+
 function asc(str, offset) {
   if (offset == null) offset = 0;
   return str.charCodeAt(offset);

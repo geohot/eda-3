@@ -1,0 +1,40 @@
+<html>
+<head>
+<script src="/eda/js/jquery-1.6.1.min.js"></script>
+<script src="/eda/js/dbmanager.js"></script>
+<script src="/eda/js/base.js"></script>
+<script src="/eda/js/tags.js"></script>
+<script src="/eda/js/objecteditor.js"></script>
+<link rel="stylesheet" type="text/css" href="/eda/xvi/xvi.css" />
+<link rel="stylesheet" type="text/css" href="/eda/css/parsed.css" />
+</head>
+<body>
+<div id="viewport">
+<table>
+<tr><td>instruction set</td><td>
+<input id="iset" onchange="setiset(this.value)"/></td>
+<tr><td>endian</td><td>
+<input id="endian" onchange="setendian(this.value)"/></td>
+</table>
+<br/>
+<table>
+<tr><td>test start</td><td>
+<input id="teststart" value="40"/></td></tr>
+<tr><td>test length</td><td>
+<input id="testlength" value="30"/></td></tr>
+<tr><td>test skip</td><td>
+<input id="testskip" value="4"/></td></tr>
+<tr><td>test run</td>
+<td><input type="button" onclick="runtest()" value="click here"/></td></tr>
+</table>
+<br/>
+<table id="localeditor"></table>
+<br/>
+<table id="parsededitor"></table>
+<br/>
+<table id="testresults"></table>
+</div>
+<script src="isdf.js"></script>
+</body>
+</html>
+

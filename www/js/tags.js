@@ -5,11 +5,13 @@ var spanlookup = {
   't':'i_tab',
   'o':'i_opcode',
   'c':'i_condition',
+  'f':'i_flags',
   'l':'i_location',
   'i':'i_immed'};
 
 var spanfunction = {
   't':displayParsed,
+  'i':parseImmed,
   'l':parseLocation};
 
 function displayParsed(parsed) {
@@ -41,6 +43,12 @@ function displayParsed(parsed) {
     }
   }
   return ret;
+}
+
+function parseImmed(immed) {
+  var i = fnum(immed);
+  if (i < 10) return shex(i);
+  else return '0x'+shex(i);
 }
 
 // this shouldn't have to do a network fetch

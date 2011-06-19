@@ -9,20 +9,7 @@ function updateTagsForAddress(address) {
 }
 
 function updateTagsTable(tags) {
-  var tabledata = "";
-  for (tagname in tags) {
-    tabledata += '<tr>';
-    tabledata += '<td>'+tagname+'</td>';
-    tabledata += '<td><input size=30 type="text" class="stealthinput" id="tagdata_'+tagname+'" value="'+tags[tagname]+'"/></td>';
-    tabledata += '</tr>';
-  }
-  tabledata += '<tr>';
-  tabledata += '<td><input size=10 type="text" class="stealthinput" id="tagname" /></td>';
-  tabledata += '<td><input size=30 type="text" class="stealthinput" id="tagdata" /></td>';
-  tabledata += '</tr>';
-
-  $('#tageditor')[0].innerHTML = tabledata;
-
+  updateObjectEditor('tag', tags, 10, 30);
   updateTagsResolved(tags);
 }
 
