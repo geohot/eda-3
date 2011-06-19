@@ -5,9 +5,24 @@ var iset;
 var endian;
 
 $(document).ready(function() {
-  setiset('arm');
+  setiset('thumb');
   runtest();
 });
+
+function savetoserver() {
+  var req = new XMLHttpRequest();
+  req.open('POST', '/eda/isdf/saveiset.php', false);
+  req.send(package_iset());
+}
+
+function package_iset() {
+  var big_obj = {};
+  big_obj['iset'] = iset;
+  big_obj['endian'] = endian;
+  big_obj['local'] = jQuery.parseJSON(localStorage[iset+'_local']);
+  big_obj['parsed'] = jQuery.parseJSON(localStorage[iset+'_parsed']);
+  return JSON.stringify(big_obj);
+}
 
 function runtest() {
   var teststart = fhex($('#teststart')[0].value);
@@ -22,11 +37,13 @@ function runtest() {
   rebuildParser();
   p("rebuilt");
 
+  p(rawdata);
+
   var i;
   for (i=0;i<testlength;i+=testskip) {
-    var parsed = parseInstruction(teststart+i, immed(testskip, endian, rawdata, i));
+    var parsed = parseInstruction(teststart+i, rawdata.subarray(i));
     ret += '<tr><td>';
-    ret += displayDumpFromRaw(testskip, rawdata, i);
+    ret += displayDumpFromRaw(testskip, rawdata.subarray(i));
     ret += '</td><td>'+parsed+'</td><td>';
     ret += displayParsed(parsed);
     ret += '</td></tr>';
@@ -87,7 +104,14 @@ function rebuildParser() {
 
   parsed_built = [];
   var matched = false;
-  for (k in parsed) {
+  for (sk in parsed) {
+    // ignore spaces
+    k = "";
+    for (var i = 0; i < sk.length; i++) {
+      var c = sk.substr(i, 1);
+      if (c != ' ') k += c;
+    }
+
     var obj = {};
     var mask = 0;
     var match = 0;
@@ -107,19 +131,21 @@ function rebuildParser() {
     obj['match'] = match;
     obj['letters'] = letters;
     obj['k'] = k;
-    obj['out'] = parsed[k];
+    obj['bytecount'] = (k.length)/8;
+    obj['out'] = parsed[sk];
     parsed_built.push(obj);
   }
 }
 
 
 // addr is available to the inside functions, hence no meta
-function parseInstruction(addr, meta_inst) {
+function parseInstruction(addr, rawdata) {
   eval(local_built);
 
   var meta_matched = false;
   for (var meta_i = 0; meta_i < parsed_built.length; meta_i++) {
     var meta_obj = parsed_built[meta_i];
+    var meta_inst = immed(meta_obj['bytecount'], endian, rawdata, 0);
     if ( (meta_inst & meta_obj['mask']) == meta_obj['match']) {
       meta_matched = true;
       break;

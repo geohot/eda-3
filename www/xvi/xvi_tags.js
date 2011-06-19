@@ -26,8 +26,8 @@ function updateTagsResolved(tags) {
     if ( (tagsAddress+length) < (viewportAddress+viewportLength)) {
       tablehtml += '<tr><td>'+
         displayDumpFromRaw(fnum(tags['len']),
-                           viewportData,
-                           tagsAddress-viewportAddress)+'</td></tr>';
+                           viewportData.subarray(tagsAddress-viewportAddress))
+                           +'</td></tr>';
     }
   }
 
@@ -37,8 +37,8 @@ function updateTagsResolved(tags) {
       tablehtml += '<tr><td>'+
         displayImmedFromRaw(fnum(tags['len']),
                             tags['endian'],
-                            viewportData,
-                            tagsAddress-viewportAddress)+'</td></tr>';
+                            viewportData.subarray(tagsAddress-viewportAddress))
+                            +'</td></tr>';
     }
   }
 

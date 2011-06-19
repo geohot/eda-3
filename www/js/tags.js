@@ -67,10 +67,10 @@ function displayComment(comment) {
   return '<span class="comment">// '+comment+'</span>';
 }
 
-function displayImmedFromRaw(length, endian, rawdata, offset) {
+function displayImmedFromRaw(length, endian, rawdata) {
   var row = '<span class="i_immed">0x';
   var i;
-  var addr = offset;
+  var addr = 0;
   if (endian == 'little') {
     addr += length-1;
   }
@@ -86,10 +86,10 @@ function displayImmedFromRaw(length, endian, rawdata, offset) {
   return row;
 }
 
-function displayDumpFromRaw(length, rawdata, offset) {
+function displayDumpFromRaw(length, rawdata) {
   var row = '<span class="i_dump">';
   for (var i=0; i<length; i++) {
-    row += shex(rawdata[offset+i],2)+" ";
+    row += shex(rawdata[i],2)+" ";
   }
   row += '</span>';
   return row;

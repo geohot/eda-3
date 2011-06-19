@@ -12,18 +12,20 @@
 <div id="viewport">
 <table>
 <tr><td>instruction set</td><td>
-<input id="iset" onchange="setiset(this.value)"/></td>
+<input id="iset" onchange="setiset(this.value)"/></td></tr>
 <tr><td>endian</td><td>
-<input id="endian" onchange="setendian(this.value)"/></td>
+<input id="endian" onchange="setendian(this.value)"/></td></tr>
+<tr><td>save</td><td>
+<input type="button" onclick="savetoserver()" value="to server" /></td></tr>
 </table>
 <br/>
 <table>
 <tr><td>test start</td><td>
-<input id="teststart" value="40"/></td></tr>
+<input id="teststart" value="62C"/></td></tr>
 <tr><td>test length</td><td>
 <input id="testlength" value="30"/></td></tr>
 <tr><td>test skip</td><td>
-<input id="testskip" value="4"/></td></tr>
+<input id="testskip" value="2"/></td></tr>
 <tr><td>test run</td>
 <td><input type="button" onclick="runtest()" value="click here"/></td></tr>
 </table>
