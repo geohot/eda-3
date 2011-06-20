@@ -5,6 +5,7 @@
 <script src="/eda/js/base.js"></script>
 <script src="/eda/js/tags.js"></script>
 <script src="/eda/js/objecteditor.js"></script>
+<script src="/eda/js/parser.js"></script>
 <link rel="stylesheet" type="text/css" href="/eda/xvi/xvi.css" />
 <link rel="stylesheet" type="text/css" href="/eda/css/parsed.css" />
 <link rel="stylesheet" type="text/css" href="isdf.css" />
@@ -19,6 +20,8 @@
 <input type="button" onclick="savetoserver()" value="to server" /></td></tr>
 <tr><td>load</td><td>
 <input type="button" onclick="loadfromserver()" value="from server" /></td></tr>
+<tr><td>env</td><td>
+<input type="button" onclick="setenvtags()" value="setup" /></td></tr>
 </table>
 <br/>
 <div id="testdiv">
@@ -40,6 +43,8 @@
 <table id="localeditor"></table>
 <br/>
 <table id="parsededitor"></table>
+<br/>
+<table id="enveditor"></table>
 <script src="isdf.js"></script>
 </body>
 </html>

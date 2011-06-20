@@ -1,7 +1,6 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
-
 function p(printme) {
   console.log(printme);
 }
@@ -51,6 +50,7 @@ function chr(num) {
   return String.fromCharCode(num);
 }
 
+// this shouldn't be in base...and shouldn't use offset
 function immed(length, endian, rawdata, offset) {
   var i;
   var addr = offset;

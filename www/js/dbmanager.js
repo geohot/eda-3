@@ -5,8 +5,7 @@ var pendingCommit = {};
 
 // currently blocking and not caching...can be fixed
 function fetchRawAddressRange(address, length, changenumber) {
-  // fuck you javascript
-  if (!changenumber) changenumber = 0;
+  changenumber = changenumber || 0;
   var req = new XMLHttpRequest();
   req.open('GET', '/eda/edadb/fetchrawextent.php?addr='+address+'&size='+length+'&changenumber='+changenumber, false);
   req.asBlob = true;

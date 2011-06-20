@@ -1,0 +1,12 @@
+#output {
+  font-family: Courier New;
+  font-size: 8pt;
+  border: 1px;
+  border-style: solid;
+  border-color: gray;
+  margin: 5px;
+  margin-top: 15px;
+  width: 1000px;
+  height: 600px;
+  overflow-y: scroll;
+}

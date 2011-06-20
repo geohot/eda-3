@@ -24,11 +24,12 @@ Build instructions:
 
 Philosophy:
 Functional first, than fast
+It only supports Chrome, because Chrome is the best browser ever
 EDA solves the halting problem
 Registers are just memory, ex 0xEDA00000 = R0, 0xEDA00004 = R1, ...
 A CPU takes in a state and outputs the delta to the next state
 Each instruction is a changelist
-Each run of an insturction is a commit
+Each run of an instruction is a commit
 
 Design:
 All state is held in the EDAdb.

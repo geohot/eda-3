@@ -1,11 +1,14 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
-var iset;
-var endian;
+// iset and endian have moved to parser
 var unsaved;
 
 $(document).ready(function() {
+  registerObjectEditor('local', localSaveCallback);
+  registerObjectEditor('parsed', localSaveCallback);
+  registerObjectEditor('env', localSaveCallback);
+
   setiset('thumb');
   runtest(false);
 });
@@ -33,6 +36,7 @@ function loadfromserver() {
 
   localStorage[iset+'_local'] = JSON.stringify(big_obj['local']);
   localStorage[iset+'_parsed'] = JSON.stringify(big_obj['parsed']);
+  localStorage[iset+'_env'] = JSON.stringify(big_obj['env']);
   localStorage[iset+'_endian'] = big_obj['endian'];
 
   setiset(iset);
@@ -44,6 +48,7 @@ function package_iset() {
   big_obj['endian'] = endian;
   big_obj['local'] = jQuery.parseJSON(localStorage[iset+'_local']);
   big_obj['parsed'] = jQuery.parseJSON(localStorage[iset+'_parsed']);
+  big_obj['env'] = jQuery.parseJSON(localStorage[iset+'_env']);
   return JSON.stringify(big_obj);
 }
 
@@ -108,7 +113,19 @@ function setiset(new_iset) {
   $('#endian')[0].value = endian;
   localSaveCallback(null, null, 'local');
   localSaveCallback(null, null, 'parsed');
+  localSaveCallback(null, null, 'env');
   unsaved = false;
+}
+
+function setenvtags() {
+  var env = jQuery.parseJSON(localStorage[iset+'_env']);
+  for (haddr in env) {
+    var addr = fhex(haddr);
+    var settags = jQuery.parseJSON(env[haddr].replace(/'/g,'"'));
+    for (tag in settags) {
+      setTag(addr, tag, settags[tag]);
+    }
+  }
 }
 
 function setendian(new_endian) {
@@ -116,9 +133,6 @@ function setendian(new_endian) {
   $('#endian')[0].value = endian;
   localStorage[iset+'_endian'] = endian;
 }
-
-registerObjectEditor('local', localSaveCallback);
-registerObjectEditor('parsed', localSaveCallback);
 
 function localSaveCallback(key, value, name) {
   //p(name+': '+key+' = '+value);
@@ -138,109 +152,4 @@ function localSaveCallback(key, value, name) {
   unsaved = true;
 }
 
-var local_built = "";
-var parsed_built = [];
-
-function rebuildParser() {
-  var local = jQuery.parseJSON(localStorage[iset+'_local']);
-  var parsed = jQuery.parseJSON(localStorage[iset+'_parsed']);
-
-  local_built = "";
-  for (f in local) {
-    var fname = f.substr(0, f.indexOf('('));
-    var fparams = f.substr(f.indexOf('('));
-    local_built += 'var '+fname+' = function'+fparams+'{'+local[f]+'};';
-  }
-
-  parsed_built = [];
-  var matched = false;
-  for (sk in parsed) {
-    // ignore spaces
-    k = "";
-    for (var i = 0; i < sk.length; i++) {
-      var c = sk.substr(i, 1);
-      if (c != ' ') k += c;
-    }
-
-    var obj = {};
-    var mask = 0;
-    var match = 0;
-    var letters = '';
-    for (var i = 0; i < k.length; i++) {
-      var c = k.substr(i, 1);
-      if (('01*'+letters).indexOf(c) == -1) {
-        letters += c;
-      }
-      //p(c);
-      mask <<= 1;
-      match <<= 1;
-      mask |= (c == '0' || c == '1');
-      match |= (c == '1');
-    }
-    obj['mask'] = mask;
-    obj['match'] = match;
-    obj['letters'] = letters;
-    obj['k'] = k;
-    obj['bytecount'] = (k.length)/8;
-    obj['out'] = parsed[sk];
-    parsed_built.push(obj);
-  }
-}
-
-
-// addr is available to the inside functions, hence no meta
-function parseInstruction(addr, rawdata) {
-  eval(local_built);
-
-  var meta_matched = false;
-  for (var meta_i = 0; meta_i < parsed_built.length; meta_i++) {
-    var meta_obj = parsed_built[meta_i];
-    var meta_inst = immed(meta_obj['bytecount'], endian, rawdata, 0);
-    if ( (meta_inst & meta_obj['mask']) == meta_obj['match']) {
-      meta_matched = true;
-      break;
-    }
-  }
-  if (meta_matched == false) return null;
-
-  for (var meta_i = 0; meta_i < meta_obj['letters'].length; meta_i++) {
-    var meta_c = meta_obj['letters'].substr(meta_i, 1);
-    eval('var '+meta_c+' = 0');
-  }
-  for (var meta_i = 0; meta_i < meta_obj['k'].length; meta_i++) {
-    var meta_c = meta_obj['k'].substr(meta_i, 1);
-    if (meta_obj['letters'].indexOf(meta_c) != -1) {
-      var meta_bit = (meta_inst >> ((meta_obj['k'].length-1)-meta_i)) & 1;
-      eval(meta_c+' <<= 1');
-      eval(meta_c+' |= '+meta_bit);
-    }
-  }
-  var meta_retobj = {};
-
-// these are functions accessible to the parser
-  var addFlow = function(addr, t) {
-    if (meta_retobj['flow'] == undefined) {
-      meta_retobj['flow'] = [];
-    }
-    meta_retobj['flow'].push(t+shex(addr));
-    return addr;
-  };
-
-  var addReturn = function() {
-    if (meta_retobj['flow'] == undefined) {
-      meta_retobj['flow'] = [];
-    }
-    meta_retobj['flow'].push('R');
-    return '';
-  };
-
-
-  meta_retobj['len'] = meta_obj['bytecount'];
-  meta_retobj['parsed'] = eval(meta_obj['out']);
-  if (meta_retobj['flow'] !== undefined) {
-    var meta_flow = JSON.stringify(meta_retobj['flow']);
-    meta_retobj['flow'] = meta_flow.replace(/"/g, '\'');
-  }
-  return meta_retobj;
-}
 
