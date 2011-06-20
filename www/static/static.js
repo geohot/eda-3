@@ -76,51 +76,41 @@ function re(addr, start) {
     s_start = start;
     return;
   }
-  if (seen[addr] === true) {
-    if (stack.length > 0) {
-      s_addr = stack.pop();
-      s_start = start;
-      setTimeout(resume, 0);
-    } else {
-      var elapsedtime = (new Date).getTime() - starttime;
-      l('done in '+(elapsedtime/1000.)+' seconds');
-      setMultiTag(JSON.stringify(tagsList));
-      l('tags uploaded');
+  if (seen[addr] === false) {
+    seen[addr] = true;
+    var inst = parseInstruction(addr, rawdata.subarray(addr-rangestart));
+    stack.push(addr + inst['len']);
+
+    if (start == true) {
+      l('s '+shex(addr), stack.length);
+      start = false;
     }
-    return;
-  }
-  if (start == true) {
-    l('s '+shex(addr), stack.length);
-    start = false;
-  }
-  seen[addr] = true;
-  var inst = parseInstruction(addr, rawdata.subarray(addr-rangestart));
-  stack.push(addr + inst['len']);
 
-  tagsList[addr] = getCommitObject(inst);
+    tagsList[addr] = getCommitObject(inst);
 
-  if (inst['flow']) {
-    p(shex(addr));
-    var flow = eval(inst['flow']);
-    for (var i=0; i<flow.length; i++) {
-      if (flow[i] == 'R') {
-        l('r '+shex(addr), stack.length);
-        stack.pop();
-      } else if(flow[i].substr(0,1) == 'A') {
-        // always branch, we follow
-        var naddr = fhex(flow[i].substr(1));
-        stack.pop();
-        stack.push(naddr);
-      } else if(flow[i].substr(0,1) == 'C') {
-        var fstart = fhex(flow[i].substr(1));
-        l('c '+shex(fstart)+' @ '+shex(addr), stack.length);
-        // start function definer
-        // add xref
-        start = true;
-        stack.push(fstart);
-      } else if(flow[i].substr(0,1) == 'O') {
-        // for optional, push it but don't depth dive
-        stack.push(fhex(flow[i].substr(1)));
+    if (inst['flow']) {
+      p(shex(addr));
+      var flow = eval(inst['flow']);
+      for (var i=0; i<flow.length; i++) {
+        if (flow[i] == 'R') {
+          l('r '+shex(addr), stack.length);
+          stack.pop();
+        } else if(flow[i].substr(0,1) == 'A') {
+          // always branch, we follow
+          var naddr = fhex(flow[i].substr(1));
+          stack.pop();
+          stack.push(naddr);
+        } else if(flow[i].substr(0,1) == 'C') {
+          var fstart = fhex(flow[i].substr(1));
+          l('c '+shex(fstart)+' @ '+shex(addr), stack.length);
+          // start function definer
+          // add xref
+          start = true;
+          stack.push(fstart);
+        } else if(flow[i].substr(0,1) == 'O') {
+          // for optional, push it but don't depth dive
+          stack.push(fhex(flow[i].substr(1)));
+        }
       }
     }
   }
