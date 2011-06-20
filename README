@@ -6,10 +6,12 @@ edadb/ -- the backend storage system for raw ram
 www/ -- the directory root(ish) of apache
   edadb/ -- PHP endpoints to access the EDAdb
   ida/ -- nice graph viewer webapp
+  isdf/ -- instruction set entry system
   js/ -- common javascript files
     base.js -- basic functions that should be a part of core javascript(not EDA specific)
     dbmanager.js -- the client side version of the edadb
     jquery-1.6.1.min.js -- jquery
+  static/ -- static analyzer
   xvi/ -- xvi32 hex editor webapp
 
 Requirements:
