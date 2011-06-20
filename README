@@ -12,9 +12,49 @@ www/ -- the directory root(ish) of apache
     jquery-1.6.1.min.js -- jquery
   xvi/ -- xvi32 hex editor webapp
 
+Requirements:
+* PHP
+* Thrift
+
 Build instructions:
 * create a build dir outside the eda-3 dir and cmake eda-3/edadb
 * do make in build dir and ./edadb
 * symlink the www directory to http://yourcomp/eda/
 * visit http://yourcomp/eda/ and pick a tool :)
+
+Philosophy:
+Functional first, than fast
+EDA solves the halting problem
+Registers are just memory, ex 0xEDA00000 = R0, 0xEDA00004 = R1, ...
+A CPU takes in a state and outputs the delta to the next state
+Each instruction is a changelist
+Each run of an insturction is a commit
+
+Design:
+All state is held in the EDAdb.
+The EDAdb has a one byte entry for each address in a 64-bit memory space.
+Each byte has a complete history of it's value and a set of tags
+These tags hold everything about the byte
+
+Implemented tags:
+* len -- number of bytes that go with this one, forming a word, ex "1", "2", "4"
+* endian -- the endianness of that word, ex "little", "big"
+* iset -- the instruction set of the word, if it's an instruction, ex "arm", "x86", "thumb"
+* comment -- comment on this byte
+* parsed -- the parsed instruction, ex "\t{\o{ADD}}\l{0xEDA0001C}, \l{0xEDA00034}, #\i{8}"
+  * \t{...} - left instructionish region
+  * \o{...} - opcode ex \o{ADD}
+  * \c{...} - condition ex \c{NE}
+  * \f{...} - flag ex \f{S}
+  * \l{addr} - location(these are registers) ex \l{0xEDA0001C}
+  * \i{num} - immed
+* flow -- JSON array of places outside the normal flow this can go, ex "['O3A40']"
+  * Oxxxx - optional, green line in IDA
+  * Axxxx - always, blue line in IDA
+  * Cxxxx - call, doesn't interupt basic block
+  * R - return
+
+Considering tags:
+* func -- JSON object of function extents on first byte of function, ex "{0x3A30:0x50}"
+* compiled -- the javascript code that actually runs the instruction, can call instruction set locals
 
