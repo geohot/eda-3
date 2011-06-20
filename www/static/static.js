@@ -67,6 +67,8 @@ function resume() {
   re(s_addr, s_start);
 }
 
+var tagsList = {};
+
 // this is the recursion function
 function re(addr, start) {
   if (going == false) {
@@ -81,7 +83,9 @@ function re(addr, start) {
       setTimeout(resume, 0);
     } else {
       var elapsedtime = (new Date).getTime() - starttime;
-      l('done in '+(elapsedtime/1000.)+' seconds')
+      l('done in '+(elapsedtime/1000.)+' seconds');
+      setMultiTag(JSON.stringify(tagsList));
+      l('tags uploaded');
     }
     return;
   }
@@ -92,6 +96,8 @@ function re(addr, start) {
   seen[addr] = true;
   var inst = parseInstruction(addr, rawdata.subarray(addr-rangestart));
   stack.push(addr + inst['len']);
+
+  tagsList[addr] = getCommitObject(inst);
 
   if (inst['flow']) {
     p(shex(addr));
@@ -124,7 +130,9 @@ function re(addr, start) {
     setTimeout(resume, 0);
   } else {
     var elapsedtime = (new Date).getTime() - starttime;
-    l('done in '+(elapsedtime/1000.)+' seconds')
+    l('done in '+(elapsedtime/1000.)+' seconds');
+    setMultiTag(JSON.stringify(tagsList));
+    l('tags uploaded');
   }
 }
 

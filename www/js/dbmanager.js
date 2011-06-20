@@ -72,11 +72,23 @@ function getMaxChangelist() {
   return fdec(req.response);
 }
 
+function setMultiTag(data) {
+  var req = new XMLHttpRequest();
+  req.open('POST', '/eda/edadb/setmultitag.php', false);
+  req.send(data);
+}
+
 function setTag(addr, name, data) {
   var req = new XMLHttpRequest();
   req.open('POST', '/eda/edadb/settag.php?addr='+addr+"&tagname="+name, false);
   req.send(data);
   invalidateTagCache(addr);
+}
+
+function setTagAsync(addr, name, data) {
+  var req = new XMLHttpRequest();
+  req.open('POST', '/eda/edadb/settag.php?addr='+addr+"&tagname="+name, true);
+  req.send(data);
 }
 
 var tagCache = {};

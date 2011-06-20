@@ -7,6 +7,28 @@ var endian;
 var local_built = "";
 var parsed_built = [];
 
+function commitAddress(addr, parseobj) {
+  setTag(addr, 'iset', iset);
+  setTag(addr, 'endian', endian);
+  setTag(addr, 'len', parseobj['len']);
+  if (parseobj['flow'] !== undefined) {
+    setTag(addr, 'flow', parseobj['flow']);
+  }
+  setTag(addr, 'parsed', parseobj['parsed']);
+}
+
+function getCommitObject(inst) {
+  var newtags = {};
+  newtags['iset'] = iset;
+  newtags['endian'] = endian;
+  newtags['len'] = inst['len'];
+  newtags['parsed'] = inst['parsed'];
+  if (inst['flow'] !== undefined) {
+    newtags['flow'] = inst['flow'];
+  }
+  return newtags;
+}
+
 function rebuildParser() {
   var local = jQuery.parseJSON(localStorage[iset+'_local']);
   var parsed = jQuery.parseJSON(localStorage[iset+'_parsed']);

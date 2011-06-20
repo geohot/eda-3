@@ -82,13 +82,7 @@ function runtest(commitflag) {
 
     if (commitflag == true) {
       var addr = teststart+i;
-      setTag(addr, 'iset', iset);
-      setTag(addr, 'endian', endian);
-      setTag(addr, 'len', parseobj['len']);
-      if (parseobj['flow'] !== undefined) {
-        setTag(addr, 'flow', parseobj['flow']);
-      }
-      setTag(addr, 'parsed', parseobj['parsed']);
+      commitAddress(addr, parseobj);
     }
 
     ret += '<tr><td>';
