@@ -17,6 +17,7 @@ www/ -- the directory root(ish) of apache
 Requirements:
 * PHP
 * Thrift
+* gtest for C++ testing
 
 Build instructions:
 * create a build dir outside the eda-3 dir and cmake eda-3/edadb
