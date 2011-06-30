@@ -89,9 +89,7 @@ function rebuildParser() {
     return (b1c - a1c);
   });
 
-  p(parsed_built);
-
-
+  //p(parsed_built);
 
 // non closure version
 /*}

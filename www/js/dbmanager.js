@@ -112,6 +112,18 @@ function getTags(addr) {
   return jQuery.parseJSON(req.response);
 }
 
+// puts the tags in cache
+function getMultiTag(addr, len) {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/edadb/getmultitag.php?addr='+addr+'&len='+len, false);
+  req.send(null);
+  var resp = jQuery.parseJSON(req.response);
+  for (addr in resp) {
+    tagCache[addr] = resp[addr];
+  }
+  return resp;
+}
+
 function getTagsAsync(addr, callback) {
   var req = new XMLHttpRequest();
   req.open('GET', '/eda/edadb/gettags.php?addr='+addr, true);

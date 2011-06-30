@@ -53,7 +53,7 @@ function go() {
   starttime = (new Date).getTime();
   //re(staticstart, true);
   calls.push([staticstart, 0]);
-  analyze_function();
+  setTimeout(analyze_function, 0);
 }
 
 function stop() {
@@ -67,7 +67,7 @@ var s_addr, s_start;
 
 function do_resume() {
   going = true;
-  analyze_function();
+  setTimeout(analyze_function, 0);
 }
 
 function mergeObjects(obj1, obj2) {
@@ -120,6 +120,10 @@ function analyze_function() {
     fi.push(addr);
     seen[addr] = true;
     var inst = parseInstruction(addr, rawdata.subarray(addr-rangestart));
+    if (inst === null) {
+      l('undefined instruction @ '+shex(addr));
+      return;
+    }
     stack.push(addr + inst['len']);
 
     tagsList[addr] = mergeObjects(tagsList[addr], getCommitObject(inst));
