@@ -9,7 +9,7 @@ $(document).ready(function() {
   registerObjectEditor('parsed', localSaveCallback);
   registerObjectEditor('env', localSaveCallback);
 
-  setiset('thumb');
+  setiset('arm');
   runtest(false);
 });
 

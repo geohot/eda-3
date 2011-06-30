@@ -7,11 +7,13 @@ var spanlookup = {
   'c':'i_condition',
   'f':'i_flags',
   'l':'i_location',
+  'd':'i_deref',
   'i':'i_immed'};
 
 var spanfunction = {
   't':displayParsed,
   'i':parseImmed,
+  'd':parseDeref,
   'l':parseLocation};
 
 function displayParsed(parsed) {
@@ -51,10 +53,26 @@ function parseImmed(immed) {
   else return '0x'+shex(i);
 }
 
+function parseDeref(ss) {
+  var paddr = fnum(ss.substr(2));
+  var len = fnum(ss.substr(0,1));
+  var endian = (ss.substr(1,1)=='l')?'little':'big';
+
+  p('dereffing '+shex(paddr));
+
+  var data = immed(len, endian, fetchRawAddressRange(paddr, len, 0));
+
+  return parseLocation(data);
+}
+
 // this shouldn't have to do a network fetch
 // and now we have a cache
 function parseLocation(ss) {
-  var addr = fnum(ss);
+  if (typeof ss == "string") {
+    var addr = fnum(ss);
+  } else {
+    var addr = ss;
+  }
   var tags = getTagsCached(addr);
   if (tags['name'] !== undefined) {
     return tags['name'];

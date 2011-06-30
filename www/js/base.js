@@ -52,6 +52,7 @@ function chr(num) {
 
 // this shouldn't be in base...and shouldn't use offset
 function immed(length, endian, rawdata, offset) {
+  offset = offset || 0;
   var i;
   var addr = offset;
   if (endian == 'little') {

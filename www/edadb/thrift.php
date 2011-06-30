@@ -1,14 +1,14 @@
 <?php
 //error_reporting(E_ALL);
 
-$GLOBALS['THRIFT_ROOT'] = '/root/devtools/thrift-0.6.0/lib/php/src';
+$GLOBALS['THRIFT_ROOT'] = '/Users/ghotz/devtools/thrift-0.6.1/lib/php/src';
 require_once $GLOBALS['THRIFT_ROOT'].'/Thrift.php';
 require_once $GLOBALS['THRIFT_ROOT'].'/protocol/TBinaryProtocol.php';
 require_once $GLOBALS['THRIFT_ROOT'].'/transport/TSocket.php';
 require_once $GLOBALS['THRIFT_ROOT'].'/transport/THttpClient.php';
 require_once $GLOBALS['THRIFT_ROOT'].'/transport/TBufferedTransport.php';
 
-$GEN_DIR = '/root/eda-3/edadb/gen-php';
+$GEN_DIR = '/Users/ghotz/eda-3/edadb/gen-php';
 require_once $GEN_DIR.'/edadb/EDAdb.php';
 require_once $GEN_DIR.'/edadb/edadb_types.php';
 

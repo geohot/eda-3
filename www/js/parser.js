@@ -74,6 +74,25 @@ function rebuildParser() {
     obj['out'] = parsed[sk];
     parsed_built.push(obj);
   }
+
+// objects are built, sort them by the bit count in the mask
+  parsed_built.sort(function(a, b) {
+    var am = a['mask'];
+    var bm = b['mask'];
+    var a1c = 0, b1c = 0;
+    while (am > 0 || bm > 0) {
+      a1c += am&1;
+      b1c += bm&1;
+      am >>= 1;
+      bm >>= 1;
+    }
+    return (b1c - a1c);
+  });
+
+  p(parsed_built);
+
+
+
 // non closure version
 /*}
 
@@ -191,7 +210,12 @@ parseInstruction = function(laddr, meta_rawdata) {
   meta_retobj = {};
 
   meta_retobj['len'] = meta_obj['bytecount'];
-  meta_retobj['parsed'] = eval(meta_obj['out']);
+  try {
+    meta_retobj['parsed'] = eval(meta_obj['out']);
+  } catch(err) {
+    p('parse error '+shex(addr)+': '+meta_obj['out']);
+    meta_retobj['parsed'] = 'ERROR!';
+  }
 
   if (meta_retobj['flow'] !== undefined) {
     var meta_flow = JSON.stringify(meta_retobj['flow']);
