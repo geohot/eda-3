@@ -1,0 +1,29 @@
+#viewporthtmlwrapper {
+  /*width: 640px;
+  height: 480px;
+  border: solid;
+  border-color: black;
+  border-width: 1px;*/
+  margin: 10px;
+}
+
+.dialogBox {
+  background-color: #CCCCCC;
+  position: absolute;
+  left: 100px;
+  top: 100px;
+  width: 200px;
+  border: ridge;
+  border-color: gray;
+  border-width: 4px;
+  padding: 5px;
+  text-align: center;
+  font-family: Courier New;
+  font-size: 8pt;
+}
+
+.dialogBox input {
+  margin: 5px;
+  font-family: Courier New;
+  font-size: 8pt;
+}

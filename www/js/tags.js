@@ -74,11 +74,13 @@ function parseLocation(ss) {
     var addr = ss;
   }
   var tags = getTagsCached(addr);
+  var ret = '<input type="hidden" value="'+shex(addr)+'" />';
   if (tags['name'] !== undefined) {
-    return tags['name'];
+    ret += tags['name'];
   } else {
-    return '0x'+shex(addr);
+    ret += '0x'+shex(addr);
   }
+  return ret;
 }
 
 function displayComment(comment) {

@@ -1,6 +1,17 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
+function require(name) {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/'+name, false);
+  req.send(null);
+  p('including '+name);
+
+  with(window) {
+    eval(req.response);
+  }
+}
+
 function p(printme) {
   console.log(printme);
 }
@@ -48,27 +59,6 @@ function fnum(str) {
 
 function chr(num) {
   return String.fromCharCode(num);
-}
-
-// this shouldn't be in base...and shouldn't use offset
-function immed(length, endian, rawdata, offset) {
-  offset = offset || 0;
-  var i;
-  var addr = offset;
-  if (endian == 'little') {
-    addr += length-1;
-  }
-  var ret = 0;
-  for (i=0;i<length;i++) {
-    ret <<= 8;
-    ret |= rawdata[addr];
-    if (endian == 'little') {
-      addr -= 1;
-    } else {
-      addr += 1;
-    }
-  }
-  return ret;
 }
 
 function asc(str, offset) {

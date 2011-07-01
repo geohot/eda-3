@@ -1,28 +1,61 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
-
-var viewportAddress = 0x4000A000;
-var viewportLength = 0x200;
-
-var totalAddress = viewportAddress;
-var totalLength = 0x200;
-
-var viewportData;
-var viewportTags;
+require('js/db.js');
+require('js/viewport.js');
 
 $(document).ready(function() {
-  viewportData = fetchRawAddressRange(totalAddress, totalLength);
-  viewportTags = getMultiTag(totalAddress, totalLength);
-  renderFlatViewport(viewportAddress, viewportLength);
+  view = new FlatViewport($('#viewporthtmlwrapper'), 0x67A, 0x40);
+  view.render();
+  view.registerKeyHandler(asc('G'), function() {
+    view.dialog("Jump to address", function(data) {
+      var addr = fhex(data);
+      if (addr != NaN) {
+        view.focus(addr);
+      }
+    });
+  });
+
+  view.registerKeyHandler(KEY_ESC, function() {
+    if (view.history.length > 0) {
+      view.focus(view.history.pop());
+      view.history.pop();
+    }
+  });
+
+  view.registerDblClickHandler('i_location', function(ele) {
+    view.focus(fhex(ele.childNodes[0].value));
+  });
+
 });
 
-function renderFlatViewport(addr, len) {
+function FlatViewport(wrapper, addr, len) {
+  Viewport.call(this, wrapper);
+  this.history = [];
+  this.viewAddress = addr;
+  this.viewLength = len;
+  db.precache(this.viewAddress, this.viewLength+4);
+}
+
+FlatViewport.prototype = new Viewport();
+FlatViewport.prototype.constructor = FlatViewport;
+FlatViewport.prototype.parent = Viewport;
+
+FlatViewport.prototype.focus = function(addr) {
+  this.history.push(this.viewAddress);
+  this.viewAddress = addr;
+  db.precache(this.viewAddress, this.viewLength+4);
+  this.render();
+};
+
+FlatViewport.prototype.render = function() {
+  var addr = this.viewAddress;
+  var len = this.viewLength;
   var i;
   var html = '<table>';
   for (i = addr; i < (addr+len);) {
     html += '<tr>';
-    var tags = viewportTags[i];
+    var tags = db.tags(i);
 
     // add default tags
     if (tags === undefined) {
@@ -35,7 +68,7 @@ function renderFlatViewport(addr, len) {
     html += '<td>'+shex(i, 8)+'</td>'
     html += '<td>'+
       displayDumpFromRaw(fnum(tags['len']),
-                         viewportData.subarray(i-viewportAddress))
+                         db.raw(i, fnum(tags['len'])))
                          +'</td>';
     if (tags['parsed'] !== undefined) {
       html += '<td>' + displayParsed(tags['parsed']) + '</td>';
@@ -43,7 +76,7 @@ function renderFlatViewport(addr, len) {
       html += '<td>'+
         displayImmedFromRaw(fnum(tags['len']),
                             tags['endian'],
-                            viewportData.subarray(i-viewportAddress))
+                            db.raw(i, fnum(tags['len'])))
                             +'</td>';
     }
 
@@ -52,6 +85,6 @@ function renderFlatViewport(addr, len) {
     i += fnum(tags['len']);
   }
   html += '</table>';
-  $('#viewport')[0].innerHTML = html;
-}
+  this.dom[0].innerHTML = html;
+};
 
