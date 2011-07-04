@@ -1,6 +1,8 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
+require('js/db.js');
+
 var spanlookup = {
   't':'i_tab',
   'o':'i_opcode',
@@ -58,9 +60,9 @@ function parseDeref(ss) {
   var len = fnum(ss.substr(0,1));
   var endian = (ss.substr(1,1)=='l')?'little':'big';
 
-  p('dereffing '+shex(paddr));
+  //p('dereffing '+shex(paddr));
 
-  var data = immed(len, endian, fetchRawAddressRange(paddr, len, 0));
+  var data = db.immed(paddr, len, endian);
 
   return parseLocation(data);
 }
@@ -73,7 +75,7 @@ function parseLocation(ss) {
   } else {
     var addr = ss;
   }
-  var tags = getTagsCached(addr);
+  var tags = db.tags(addr);
   var ret = '<input type="hidden" value="'+shex(addr)+'" />';
   if (tags['name'] !== undefined) {
     ret += tags['name'];

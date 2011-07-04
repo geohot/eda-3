@@ -81,7 +81,12 @@ function mergeObjects(obj1, obj2) {
     if (obj1[key] == undefined) {
       obj1[key] = obj2[key];
     } else {
-      obj1[key] = obj1[key].concat(' '+obj2[key]);
+      if (obj1[key].substr(0,1) == '[') {
+        // handle array merge
+        obj1[key] = obj1[key].substr(0, obj1[key].length-1) + obj2[key].substr(1);
+      } else {
+        obj1[key] = obj1[key].concat(' '+obj2[key]);
+      }
     }
   }
   return obj1;
@@ -93,10 +98,11 @@ function analyze_function() {
   }
   if (calls.length == 0) {
     var elapsedtime = (new Date).getTime() - starttime;
-    l('done in '+(elapsedtime/1000.)+' seconds');
-    setMultiTag(JSON.stringify(tagsList));
-    elapsedtime = (new Date).getTime() - starttime;
-    l('tags uploaded in '+(elapsedtime/1000.)+' seconds');
+    l('done in '+(elapsedtime/1000.)+' seconds, uploading...');
+    setMultiTagAsync(JSON.stringify(tagsList), function() {
+      elapsedtime = (new Date).getTime() - starttime;
+      l('tags uploaded in '+(elapsedtime/1000.)+' seconds');
+    });
     return;
   }
   var call = calls.pop();
@@ -144,9 +150,15 @@ function analyze_function() {
           l('c '+shex(fstart)+' @ '+shex(addr), depth);
           // start function definer
           // add xref
-          tagsList[fstart] = mergeObjects(tagsList[fstart], {"xref": shex(addr)});
+          tagsList[fstart] = mergeObjects(tagsList[fstart], {"flow": '[\'X'+shex(addr)+'\']'});
           calls.push([fstart, depth+1]);
         } else if(flow[i].substr(0,1) == 'O') {
+          var fland = fhex(flow[i].substr(1));
+          // L is a landing zone
+          // that's stupid, add in always jump to the previous instruction
+          //tagsList[fland] = mergeObjects(tagsList[fland], {"flow": '[\'L'+shex(addr)+'\']'});
+          // hack for thumb
+          tagsList[fland-2] = mergeObjects(tagsList[fland-2], {"flow": '[\'A'+shex(fland)+'\']'});
           // for optional, push it but don't depth dive
           stack.push(fhex(flow[i].substr(1)));
         }
@@ -181,7 +193,7 @@ function analyze_function() {
 
 // trace function
 //   build list of all calls
-function resume() {
+/*function resume() {
   re(s_addr, s_start);
 }
 
@@ -240,5 +252,5 @@ function re(addr, start) {
     setMultiTag(JSON.stringify(tagsList));
     l('tags uploaded');
   }
-}
+}*/
 

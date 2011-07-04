@@ -64,7 +64,42 @@ function Viewport(wrapper) {
     }
   }.bind(this);
 
+  this.dom[0].onmousewheel = function(e) {
+    if (this.handleScrolling !== undefined) {
+      this.handleScrolling(e.wheelDelta);
+    }
+  }.bind(this);
+
+  this.dom[0].onselectstart = function(e) { return false; }
 };
+
+Viewport.prototype.registerDefaultHandlers = function() {
+  this.registerKeyHandler(asc('G'), function() {
+    this.dialog("Jump to address", function(data) {
+      var addr = fhex(data);
+      if (addr != NaN) {
+        this.focus(addr);
+      }
+    }.bind(this));
+  }.bind(this));
+
+  this.registerKeyHandler(KEY_ESC, function() {
+    window.history.back();
+  });
+
+  this.registerDblClickHandler('i_location', function(ele) {
+    this.focus(fhex(ele.childNodes[0].value));
+  }.bind(this));
+
+  window.onpopstate = function(e) {
+    e.preventDefault();
+    if (e.state !== null) {
+      p(e);
+      this.focus(e.state, true);
+    }
+    return false;
+  }.bind(this);
+}
 
 Viewport.prototype.registerKeyHandler = function(num, fxn) {
   this.keyBindings[num] = fxn;

@@ -5,55 +5,46 @@ require('js/db.js');
 require('js/viewport.js');
 
 $(document).ready(function() {
-  view = new FlatViewport($('#viewporthtmlwrapper'), 0x67A, 0x40);
-  view.render();
-  view.registerKeyHandler(asc('G'), function() {
-    view.dialog("Jump to address", function(data) {
-      var addr = fhex(data);
-      if (addr != NaN) {
-        view.focus(addr);
-      }
-    });
-  });
-
-  view.registerKeyHandler(KEY_ESC, function() {
-    if (view.history.length > 0) {
-      view.focus(view.history.pop());
-      view.history.pop();
-    }
-  });
-
-  view.registerDblClickHandler('i_location', function(ele) {
-    view.focus(fhex(ele.childNodes[0].value));
-  });
+  view = new FlatViewport($('#viewporthtmlwrapper'), 0x67A, 0x20, 0, 0x10000);
+  view.registerDefaultHandlers();
+  window.unload = function() { alert("unloading"); };
 
 });
 
-function FlatViewport(wrapper, addr, len) {
+function FlatViewport(wrapper, addr, linecount, maxaddr, maxlen) {
   Viewport.call(this, wrapper);
-  this.history = [];
-  this.viewAddress = addr;
-  this.viewLength = len;
-  db.precache(this.viewAddress, this.viewLength+4);
+  this.viewLines = linecount;
+  db.precache(maxaddr, maxlen);
+  db.precacheTags(0xEDA00000, 0x80);
+  this.focus(addr);
 }
 
 FlatViewport.prototype = new Viewport();
 FlatViewport.prototype.constructor = FlatViewport;
 FlatViewport.prototype.parent = Viewport;
 
-FlatViewport.prototype.focus = function(addr) {
-  this.history.push(this.viewAddress);
+// overloaded
+FlatViewport.prototype.handleScrolling = function(delta) {
+  this.viewAddress -= (delta/20);
+  this.render();
+}
+
+FlatViewport.prototype.focus = function(addr, nopush) {
+  if (nopush !== true) {
+    window.history.pushState(addr);
+  }
   this.viewAddress = addr;
-  db.precache(this.viewAddress, this.viewLength+4);
+  //db.precache(this.viewAddress, this.viewLength+4);
   this.render();
 };
 
 FlatViewport.prototype.render = function() {
   var addr = this.viewAddress;
   var len = this.viewLength;
-  var i;
+  var i = addr;
   var html = '<table>';
-  for (i = addr; i < (addr+len);) {
+  var linecount = 0;
+  while (linecount < this.viewLines) {
     html += '<tr>';
     var tags = db.tags(i);
 
@@ -65,13 +56,13 @@ FlatViewport.prototype.render = function() {
       tags['len'] = '1';
     }
 
-    html += '<td>'+shex(i, 8)+'</td>'
-    html += '<td>'+
+    html += '<td width="80px">'+shex(i, 8)+'</td>'
+    html += '<td width="100px">'+
       displayDumpFromRaw(fnum(tags['len']),
                          db.raw(i, fnum(tags['len'])))
                          +'</td>';
     if (tags['parsed'] !== undefined) {
-      html += '<td>' + displayParsed(tags['parsed']) + '</td>';
+      html += '<td width="300px">' + displayParsed(tags['parsed']) + '</td>';
     } else if (tags['endian'] !== undefined) {
       html += '<td>'+
         displayImmedFromRaw(fnum(tags['len']),
@@ -83,6 +74,7 @@ FlatViewport.prototype.render = function() {
 
     html += '</tr>';
     i += fnum(tags['len']);
+    linecount++;
   }
   html += '</table>';
   this.dom[0].innerHTML = html;

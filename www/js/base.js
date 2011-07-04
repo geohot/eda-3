@@ -1,8 +1,12 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
+var included = {};
+
 function require(name) {
+  if (included[name] == true) return;
   var req = new XMLHttpRequest();
+  included[name] = true;
   req.open('GET', '/eda/'+name, false);
   req.send(null);
   p('including '+name);

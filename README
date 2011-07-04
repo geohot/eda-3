@@ -56,6 +56,7 @@ Implemented tags:
   * Oxxxx - optional, green line in IDA
   * Axxxx - always, blue line in IDA
   * Cxxxx - call, doesn't interupt basic block
+  * Xxxxx - xref, doesn't interupt basic block
   * R - return
 
 Considering tags:

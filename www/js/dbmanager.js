@@ -78,6 +78,18 @@ function setMultiTag(data) {
   req.send(data);
 }
 
+function setMultiTagAsync(data, callback) {
+  var req = new XMLHttpRequest();
+  req.open('POST', '/eda/edadb/setmultitag.php', true);
+  req.onreadystatechange = function() {
+    if (req.readyState == 4 && req.status == 200) {
+      callback();
+    }
+  };
+  req.send(data);
+
+}
+
 function setTag(addr, name, data) {
   var req = new XMLHttpRequest();
   req.open('POST', '/eda/edadb/settag.php?addr='+addr+"&tagname="+name, false);
