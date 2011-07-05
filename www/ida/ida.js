@@ -133,8 +133,23 @@ Graph.prototype.assignLevels = function() {
   this.levels.pop(); // last level should be empty
 };
 
-// depth first search from the parents
+Graph.prototype.inLineage = function(addr, qaddr, seen) {
+  seen = seen || [];
+  for (var i = 0; i < this.vertices[addr]['parents'].length; i++) {
+    var taddr = this.vertices[addr]['parents'][i];
+    if (taddr === addr) return true;
+    if (seen.indexOf(taddr) !== -1) return false;
+
+    if (inLineage(taddr, qaddr, seen) === true) {
+      return true;
+    }
+  }
+  return false;
+};
+
+// breath
 Graph.prototype.convertToDAG = function() {
+  p('making dag');
   var seen = [];
   var stack = [];
   for (saddr in this.vertices) {
@@ -150,14 +165,17 @@ Graph.prototype.convertToDAG = function() {
     for (var i = 0; i < this.vertices[addr]['children'].length; i++) {
       var naddr = this.vertices[addr]['children'][i];
       p(shex(addr) + ' has child ' + shex(naddr));
-      if (seen.indexOf(naddr) !== -1) {
+      if (this.inLineage(addr, naddr) === true) {
+        this.reverseEdge(this.findEdge(addr, naddr));
+      }
+      /*if (seen.indexOf(naddr) !== -1) {
         // already seen
         p("reversing "+shex(addr)+' -> '+shex(naddr));
         this.reverseEdge(this.findEdge(addr, naddr));
       } else {
         seen.push(naddr);
         stack.push(naddr);
-      }
+      }*/
     }
   }
 };
