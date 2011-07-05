@@ -9,6 +9,7 @@ var spanlookup = {
   'c':'i_condition',
   'f':'i_flags',
   'l':'i_location',
+  'L':'i_corelocation',
   'd':'i_deref',
   'i':'i_immed'};
 
@@ -16,6 +17,7 @@ var spanfunction = {
   't':displayParsed,
   'i':parseImmed,
   'd':parseDeref,
+  'L':parseLocation,
   'l':parseLocation};
 
 function displayParsed(parsed) {

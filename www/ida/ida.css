@@ -1,0 +1,24 @@
+.block {
+  border: solid;
+  border-color: black;
+  border-width: 1px;
+  display: inline-block;
+  -webkit-box-shadow: 4px 4px 4px gray;
+  vertical-align: top;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-left: 4px;
+  padding-right: 4px;
+  background-color: white;
+}
+
+.line {
+  font: 12px Courier New;
+  /*font-family: monospace;*/
+}
+
+body {
+  background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#E0F8FF));
+}
+
+

@@ -28,7 +28,11 @@
 }
 
 .i_location {
-  color: #996600;
+  color: darkslateblue;
+}
+
+.i_corelocation {
+  color: #D08500;
 }
 
 .comment {

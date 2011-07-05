@@ -4,26 +4,31 @@
 require('js/db.js');
 require('js/viewport.js');
 
+var view;
+
 $(document).ready(function() {
   view = new IDAViewport($('#viewporthtmlwrapper'));
   view.registerDefaultHandlers();
+  view.focus(0x4778);
 });
 
 function IDAViewport(wrapper) {
   Viewport.call(this, wrapper);
-  this.g = new Graph();
-
-// for testing
-  this.focus(0x4778);
 }
 
 IDAViewport.prototype = new Viewport();
 IDAViewport.prototype.constructor = IDAViewport;
 IDAViewport.prototype.parent = Viewport;
 
-IDAViewport.prototype.focus = function(addr) {
+IDAViewport.prototype.focus = function(addr, nopush) {
   var functiontag = db.tags(addr)['function'];
   if (functiontag === undefined) return false;
+  if (nopush !== true) {
+    window.history.pushState(addr);
+  }
+
+  this.g = new Graph();
+  this.dom[0].innerHTML = "";
 
   var extents = functiontag.split(' ');
   for (var i = 0; i < extents.length; i++) {
@@ -61,7 +66,7 @@ IDAViewport.prototype.focus = function(addr) {
       j += len;
     }
   }
-  this.g.debugPrint();
+  this.g.render();
 };
 
 IDAViewport.prototype.isAddressInFunction = function(addr) {
@@ -76,24 +81,171 @@ function Graph() {
   this.edges = [];
 }
 
+
+// sugiyama is four steps, prove you are smarter now :P
+// * rank -- order vertically
+// * ordering -- order horizontally
+// * position -- place horizontally
+// * make_splines -- draw graph
+
+
 Graph.prototype.addVertex = function(addr, vlen) {
-  this.vertices[shex(addr)] = {'len': vlen};
+  if (this.vertices[addr] === undefined) {
+    this.vertices[addr] = {};
+    this.vertices[addr]['parents'] = [];
+    this.vertices[addr]['children'] = [];
+    this.vertices[addr]['level'] = undefined;  // useless?
+  }
+  if (vlen !== undefined) {
+    this.vertices[addr]['len'] = vlen;
+    this.vertices[addr]['rendered'] = this.renderVertex(addr);
+  }
+};
+
+Graph.prototype.assignLevels = function() {
+  this.levels = [[]];
+  for (saddr in this.vertices) {
+    var addr = fdec(saddr);
+    if (this.vertices[addr]['children'].length === 0) {
+      this.levels[0].push(addr);
+      this.vertices[addr]['level'] = 0;
+    }
+  }
+  // got all sinks on level 0
+  var onlevel = 0;
+  while (this.levels[onlevel].length > 0) {
+    this.levels.push([]); // add new level
+    for (var i=0; i<this.levels[onlevel].length; i++) {
+      // loop over all in the current level
+      var addr = this.levels[onlevel][i];
+      var vertex = this.vertices[addr];
+      for (var j=0; j< vertex['parents'].length; j++) {
+        var paddr = vertex.parents[j];
+        var pvertex = this.vertices[paddr];
+        if (paddr != addr) {
+          this.vertices[paddr]['level'] = onlevel+1;
+          this.levels[onlevel+1].push(paddr);
+        }
+      }
+    }
+    onlevel++;
+  }
+  this.levels.pop(); // last level should be empty
+};
+
+// depth first search from the parents
+Graph.prototype.convertToDAG = function() {
+  var seen = [];
+  var stack = [];
+  for (saddr in this.vertices) {
+    var addr = fdec(saddr);
+    if (this.vertices[addr]['parents'].length === 0) {
+      seen.push(addr);
+      stack.push(addr);
+    }
+  }
+
+  while (stack.length > 0) {
+    var addr = stack.pop();
+    for (var i = 0; i < this.vertices[addr]['children'].length; i++) {
+      var naddr = this.vertices[addr]['children'][i];
+      p(shex(addr) + ' has child ' + shex(naddr));
+      if (seen.indexOf(naddr) !== -1) {
+        // already seen
+        p("reversing "+shex(addr)+' -> '+shex(naddr));
+        this.reverseEdge(this.findEdge(addr, naddr));
+      } else {
+        seen.push(naddr);
+        stack.push(naddr);
+      }
+    }
+  }
+};
+
+// this runs sugiyama...
+Graph.prototype.render = function() {
+  this.convertToDAG();
+  this.assignLevels();
+  this.placeBoxes();
+  this.debugPrint();
+  return;
+};
+
+Graph.prototype.placeBoxes = function() {
+  var datable = document.createElement('table');
+  for (var i = this.levels.length-1; i >= 0; i--) {
+    var tablerow = document.createElement('tr');
+    var tableshit = document.createElement('td');
+    for (var j = 0; j < this.levels[i].length; j++) {
+      tableshit.appendChild(this.vertices[this.levels[i][j]].rendered);
+    }
+    tablerow.appendChild(tableshit);
+    datable.appendChild(tablerow);
+  }
+  view.dom[0].appendChild(datable);
+};
+
+// returns DOM object containing the vertex
+Graph.prototype.renderVertex = function(addr) {
+  var ret = document.createElement('div');
+  ret.className = 'block';
+  for (var i = addr; i < addr+this.vertices[addr]['len'];) {
+    var t = document.createElement('div');
+    t.className = 'line';
+    var tags = db.tags(i);
+    t.innerHTML = displayParsed(tags['parsed']);
+    ret.appendChild(t);
+    i += fnum(tags['len']);
+  }
+  return ret;
+};
+
+Graph.prototype.findEdge = function(from, to) {
+  for (var i = 0; i < this.edges.length; i++) {
+    if (this.edges[i]['from'] == from && this.edges[i]['to'] == to) {
+      return i;
+    }
+  }
+  return -1;
+};
+
+Graph.prototype.reverseEdge = function(edgenum) {
+  var v1 = this.edges[edgenum]['from'];
+  var v2 = this.edges[edgenum]['to'];
+  this.vertices[v1]['children'].splice(this.vertices[v1]['children'].indexOf(v2), 1);
+  this.vertices[v2]['parents'].splice(this.vertices[v2]['parents'].indexOf(v1), 1);
+
+  this.edges[edgenum]['from'] = v2;
+  this.edges[edgenum]['to'] = v1;
+  this.edges[edgenum]['reversed'] = true;
+  this.vertices[v2]['children'].push(v1);
+  this.vertices[v1]['parents'].push(v2);
 };
 
 // v1 -> v2
 Graph.prototype.addEdge = function(v1, v2, color) {
+  this.addVertex(v1);
+  this.addVertex(v2);
   this.edges.push({'from': v1, 'to': v2, 'color': color});
+  this.vertices[v1]['children'].push(v2);
+  this.vertices[v2]['parents'].push(v1);
 };
 
 Graph.prototype.debugPrint = function() {
   p('vertices: ');
-  for (addr in this.vertices) {
-    p('  '+addr+': '+shex(this.vertices[addr]['len']));
+  for (saddr in this.vertices) {
+    var addr = fdec(saddr);
+    var vertex = this.vertices[addr];
+    p('  '+addr+': '+vertex['len'] + ' ' + vertex['level'] + ' p:' + vertex['parents'] + ' c:' + vertex['children']);
   }
   p('edges: ');
   for (var i = 0; i < this.edges.length; i++) {
     p('  '+shex(this.edges[i]['from'])+' -'+this.edges[i]['color']+'> '+shex(this.edges[i]['to']));
   }
 
+  /*for (saddr in this.vertices) {
+    var addr = fdec(saddr);
+    view.dom[0].appendChild(this.renderVertex(addr));
+  }*/
 };
 

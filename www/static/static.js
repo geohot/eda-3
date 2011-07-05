@@ -83,7 +83,7 @@ function mergeObjects(obj1, obj2) {
     } else {
       if (obj1[key].substr(0,1) == '[') {
         // handle array merge
-        obj1[key] = obj1[key].substr(0, obj1[key].length-1) + obj2[key].substr(1);
+        obj1[key] = obj1[key].substr(0, obj1[key].length-1) +','+ obj2[key].substr(1);
       } else {
         obj1[key] = obj1[key].concat(' '+obj2[key]);
       }
@@ -158,7 +158,7 @@ function analyze_function() {
           // that's stupid, add in always jump to the previous instruction
           //tagsList[fland] = mergeObjects(tagsList[fland], {"flow": '[\'L'+shex(addr)+'\']'});
           // hack for thumb
-          tagsList[fland-2] = mergeObjects(tagsList[fland-2], {"flow": '[\'A'+shex(fland)+'\']'});
+          //tagsList[fland-2] = mergeObjects(tagsList[fland-2], {"flow": '[\'A'+shex(fland)+'\']'});
           // for optional, push it but don't depth dive
           stack.push(fhex(flow[i].substr(1)));
         }
