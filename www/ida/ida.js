@@ -30,6 +30,7 @@ IDAViewport.prototype.focus = function(addr, nopush) {
   this.g = new Graph();
   this.dom[0].innerHTML = "";
 
+
   var extents = functiontag.split(' ');
   for (var i = 0; i < extents.length; i++) {
     var extent = extents[i].split(':');
@@ -37,6 +38,8 @@ IDAViewport.prototype.focus = function(addr, nopush) {
     var extent_len = fhex(extent[1]);
     db.precache(extent_addr, extent_len);
     var start = extent_addr;
+    var bbreaks = [extent_addr];
+    var paths = [];
     p('processing extent '+shex(extent_addr)+'-'+shex(extent_addr + extent_len));
     for (var j = extent_addr; j <= (extent_addr + extent_len);) {
       var tags = db.tags(j);
@@ -46,24 +49,44 @@ IDAViewport.prototype.focus = function(addr, nopush) {
       var len = fnum(tags['len']);
       if (tags['flow'] !== undefined) {
         var flow = eval(tags['flow']);
-        //p('flow @ '+shex(j)+' : '+flow);
+        p('flow @ '+shex(j)+' : '+flow);
         for (var k = 0; k < flow.length; k++) {
           if (flow[k].substr(0,1) == 'O') {
-            // optional, this goes red to next, green to
-            this.g.addVertex(start, (j-start)+len);
-            this.g.addEdge(start, j+len, 'red');
-            this.g.addEdge(start, fhex(flow[k].substr(1)), 'green');
             start = j+len;
+            bbreaks.push(j+len);
+            bbreaks.push(fhex(flow[k].substr(1)));
+            paths.push([j, j+len]);
+            paths.push([j, fhex(flow[k].substr(1))]);
           } else if (flow[k].substr(0,1) == 'A') {
-            this.g.addVertex(start, (j-start)+len);
-            this.g.addEdge(start, j+len, 'blue');
-            start = j+len;
+            bbreaks.push(fhex(flow[k].substr(1)));
+            paths.push([j, fhex(flow[k].substr(1))]);
           } else if (flow[k].substr(0,1) == 'R') {
-            this.g.addVertex(start, (j-start)+len);
+            //this.g.addVertex(start, (j-start)+len);
+            bbreaks.push(j+len);
           }
         }
       }
       j += len;
+    }
+    p(bbreaks);
+    p(paths);
+
+    bbreaks = jQuery.unique(bbreaks);
+    bbreaks.sort();
+
+    for (var j = 0; j < bbreaks.length-1; j++) {
+      this.g.addVertex(bbreaks[j], bbreaks[j+1]-bbreaks[j]);
+    }
+    for (var k = 0; k < paths.length; k++) {
+      var from = paths[k][0];
+      var to = paths[k][1];
+      for (var j = 1; j < bbreaks.length-1; j++) {
+        if (bbreaks[j] > from) {
+          from = bbreaks[j-1];
+          break;
+        }
+      }
+      this.g.addEdge(from, to);
     }
   }
   this.g.render();
@@ -97,6 +120,7 @@ Graph.prototype.addVertex = function(addr, vlen) {
     this.vertices[addr]['level'] = undefined;  // useless?
   }
   if (vlen !== undefined) {
+    p('add vertex '+shex(addr)+' - '+shex(addr+vlen));
     this.vertices[addr]['len'] = vlen;
     this.vertices[addr]['rendered'] = this.renderVertex(addr);
   }
@@ -123,6 +147,10 @@ Graph.prototype.assignLevels = function() {
         var paddr = vertex.parents[j];
         var pvertex = this.vertices[paddr];
         if (paddr != addr) {
+          if (this.vertices[paddr]['level'] !== undefined) {
+            var lvl = this.vertices[paddr]['level'];
+            this.levels[lvl].splice(this.levels[lvl].indexOf(paddr), 1);
+          }
           this.vertices[paddr]['level'] = onlevel+1;
           this.levels[onlevel+1].push(paddr);
         }
@@ -149,7 +177,7 @@ Graph.prototype.inLineage = function(addr, qaddr, seen) {
 
 // breath
 Graph.prototype.convertToDAG = function() {
-  p('making dag');
+  /*p('making dag');
   var seen = [];
   var stack = [];
   for (saddr in this.vertices) {
@@ -168,24 +196,16 @@ Graph.prototype.convertToDAG = function() {
       if (this.inLineage(addr, naddr) === true) {
         this.reverseEdge(this.findEdge(addr, naddr));
       }
-      /*if (seen.indexOf(naddr) !== -1) {
-        // already seen
-        p("reversing "+shex(addr)+' -> '+shex(naddr));
-        this.reverseEdge(this.findEdge(addr, naddr));
-      } else {
-        seen.push(naddr);
-        stack.push(naddr);
-      }*/
     }
-  }
+  }*/
 };
 
 // this runs sugiyama...
 Graph.prototype.render = function() {
-  this.convertToDAG();
+  //this.convertToDAG();
   this.assignLevels();
-  this.placeBoxes();
   this.debugPrint();
+  this.placeBoxes();
   return;
 };
 
@@ -242,9 +262,17 @@ Graph.prototype.reverseEdge = function(edgenum) {
 
 // v1 -> v2
 Graph.prototype.addEdge = function(v1, v2, color) {
-  this.addVertex(v1);
-  this.addVertex(v2);
-  this.edges.push({'from': v1, 'to': v2, 'color': color});
+  p('add edge '+shex(v1)+' -> '+shex(v2));
+  var reversed = false;
+  if (v1 > v2) {
+    var t = v2;
+    v2 = v1;
+    v1 = t;
+    reversed = true;
+  }
+  //this.addVertex(v1);
+  //this.addVertex(v2);
+  this.edges.push({'from': v1, 'to': v2, 'color': color, 'reversed': reversed});
   this.vertices[v1]['children'].push(v2);
   this.vertices[v2]['parents'].push(v1);
 };
