@@ -30,6 +30,9 @@ IDAViewport.prototype.focus = function(addr, nopush) {
   this.g = new Graph();
   this.dom[0].innerHTML = "";
 
+  var ins = {};
+  var outs = {};
+  var defaults = {};
 
   var extents = functiontag.split(' ');
   for (var i = 0; i < extents.length; i++) {
@@ -37,9 +40,6 @@ IDAViewport.prototype.focus = function(addr, nopush) {
     var extent_addr = fhex(extent[0]);
     var extent_len = fhex(extent[1]);
     db.precache(extent_addr, extent_len);
-    var start = extent_addr;
-    var bbreaks = [extent_addr];
-    var paths = [];
     p('processing extent '+shex(extent_addr)+'-'+shex(extent_addr + extent_len));
     for (var j = extent_addr; j <= (extent_addr + extent_len);) {
       var tags = db.tags(j);
@@ -47,28 +47,81 @@ IDAViewport.prototype.focus = function(addr, nopush) {
         p('!!!ERROR, no length tag in function');
       }
       var len = fnum(tags['len']);
+      ins[j] = [];
+      outs[j] = [];
+      j += len;
+    }
+
+    var end;
+
+    for (var j = extent_addr; j <= (extent_addr + extent_len);) {
+      var tags = db.tags(j);
+      if (tags['len'] === undefined) {
+        p('!!!ERROR, no length tag in function');
+      }
+      var len = fnum(tags['len']);
+      var nodefault = false;
+
       if (tags['flow'] !== undefined) {
         var flow = eval(tags['flow']);
         p('flow @ '+shex(j)+' : '+flow);
         for (var k = 0; k < flow.length; k++) {
           if (flow[k].substr(0,1) == 'O') {
-            start = j+len;
-            bbreaks.push(j+len);
-            bbreaks.push(fhex(flow[k].substr(1)));
-            paths.push([j, j+len]);
-            paths.push([j, fhex(flow[k].substr(1))]);
+            outs[j].push(fhex(flow[k].substr(1))+'-green');
+            ins[fhex(flow[k].substr(1))].push(j);
+
+            outs[j].push((j+len)+'-red');
+            ins[j+len].push(j);
+            nodefault = true;
           } else if (flow[k].substr(0,1) == 'A') {
-            bbreaks.push(fhex(flow[k].substr(1)));
-            paths.push([j, fhex(flow[k].substr(1))]);
+            outs[j].push(fhex(flow[k].substr(1)));
+            ins[fhex(flow[k].substr(1))].push(j);
+            nodefault = true;
           } else if (flow[k].substr(0,1) == 'R') {
-            //this.g.addVertex(start, (j-start)+len);
-            bbreaks.push(j+len);
+            nodefault = true;
           }
         }
       }
+
+      if (nodefault === false) {
+        outs[j].push(j+len);
+        ins[j+len].push(j);
+      }
+      defaults[j] = j+len;
       j += len;
+      end = j;
     }
-    p(bbreaks);
+
+    p(ins);
+    p(outs);
+
+    var start = extent_addr;
+    var addr;
+    for (saddr in ins) {
+      addr = fnum(saddr);
+      if (ins[addr].length > 1) {
+        this.g.addVertex(start, addr-start);
+        this.g.addEdge(start, addr, "blue");
+        start = addr;
+      }
+
+      if ( (outs[addr].length != 1) || (outs[addr][0] !== defaults[addr])) {
+        var len = fnum(db.tags(addr)['len']);
+        this.g.addVertex(start, addr-start+len);
+        for (var i = 0; i < outs[addr].length; i++) {
+          if (typeof outs[addr][i] == "string") {
+            var o = outs[addr][i].split('-');
+            this.g.addEdge(start, fnum(o[0]), o[1]);
+          } else {
+            this.g.addEdge(start, outs[addr][i], "blue");
+          }
+        }
+        start = addr+len;
+      }
+
+    }
+
+    /*p(bbreaks);
     p(paths);
 
     bbreaks = jQuery.unique(bbreaks);
@@ -87,7 +140,7 @@ IDAViewport.prototype.focus = function(addr, nopush) {
         }
       }
       this.g.addEdge(from, to);
-    }
+    }*/
   }
   this.g.render();
 };
@@ -139,6 +192,7 @@ Graph.prototype.assignLevels = function() {
   var onlevel = 0;
   while (this.levels[onlevel].length > 0) {
     this.levels.push([]); // add new level
+    var remove = []
     for (var i=0; i<this.levels[onlevel].length; i++) {
       // loop over all in the current level
       var addr = this.levels[onlevel][i];
@@ -147,14 +201,18 @@ Graph.prototype.assignLevels = function() {
         var paddr = vertex.parents[j];
         var pvertex = this.vertices[paddr];
         if (paddr != addr) {
-          if (this.vertices[paddr]['level'] !== undefined) {
-            var lvl = this.vertices[paddr]['level'];
-            this.levels[lvl].splice(this.levels[lvl].indexOf(paddr), 1);
+          if (pvertex['level'] !== undefined) {
+            remove.push([paddr,pvertex['level']]);
           }
-          this.vertices[paddr]['level'] = onlevel+1;
+          pvertex['level'] = onlevel+1;
           this.levels[onlevel+1].push(paddr);
         }
       }
+    }
+    for (var i=0; i<remove.length;i++) {
+      var paddr = remove[i][0];
+      var lvl = remove[i][1];
+      this.levels[lvl].splice(this.levels[lvl].indexOf(paddr), 1);
     }
     onlevel++;
   }
@@ -203,11 +261,72 @@ Graph.prototype.convertToDAG = function() {
 // this runs sugiyama...
 Graph.prototype.render = function() {
   //this.convertToDAG();
-  this.assignLevels();
+  /*this.assignLevels();
   this.debugPrint();
-  this.placeBoxes();
+  this.placeBoxes();*/
+
+  var send = "digraph graphname {\n";
+
+  var gbox = document.createElement('div');
+  view.dom[0].appendChild(gbox);
+
+  for (saddr in this.vertices) {
+    var addr = fnum(saddr);
+    var r = this.vertices[addr].rendered;
+    gbox.appendChild(r);
+    var width = (r.offsetWidth * 1.0) / 72.;
+    var height = (r.offsetHeight * 1.0) / 72.;
+
+    send += 'N' + shex(addr) + ' [width="'+width+'", height="'+height+'", shape="box"];'+"\n";
+  }
+  for (var i = 0; i < this.edges.length; i++) {
+    send += 'N' + shex(this.edges[i]['from']) + ' -> N' + shex(this.edges[i]['to']) + ' [color='+this.edges[i]['color']+', headport=n, tailport=s]'+";\n";
+
+  }
+  send += "}\n";
+
+  var req = new XMLHttpRequest();
+  req.open('POST', '/eda/graph/dot.php', false);
+  req.send(send);
+
+  p(send);
+  p(req.response);
+
+  var resp = req.response.split('\n');
+
+  var gdata = resp[2].split('"')[1].split(',');
+
+  gbox.style.width = gdata[2];
+  gbox.style.height = gdata[3];
+
+  gbox.style.position = "absolute";
+  gbox.style.left = "50";
+  gbox.style.top = "50";
+
+  for (var i = 3;true;i++) {
+    if (resp[i].indexOf('->') != -1) break;
+
+    var addr = resp[i].split(' ')[0].split('N')[1];
+    var pos = resp[i].slice(resp[i].indexOf('pos=')).split('"')[1].split(',');
+
+    var r = this.vertices[fhex(addr)].rendered;
+
+    r.style.position = "absolute";
+    r.style.left = fnum(pos[0]) - (r.offsetWidth/2);
+    r.style.top = fnum(gdata[3]) - (fnum(pos[1]) + (r.offsetHeight/2));
+  }
+
+  var lines = new Image(fnum(gdata[2]), fnum(gdata[3])+3);
+  lines.src = "/eda/graph/out.gif?"+Math.random();
+  lines.style.position = "absolute";
+  lines.style.top = "0";
+  lines.style.left = "0";
+  lines.style.zIndex = -2;
+  gbox.appendChild(lines);
+  //p(resp);
   return;
 };
+
 
 Graph.prototype.placeBoxes = function() {
   var datable = document.createElement('table');
@@ -227,6 +346,10 @@ Graph.prototype.placeBoxes = function() {
 Graph.prototype.renderVertex = function(addr) {
   var ret = document.createElement('div');
   ret.className = 'block';
+  var a = document.createElement('div');
+  a.className = 'line';
+  a.innerHTML = displayParsed('\\l{'+addr+'}');
+  ret.appendChild(a);
   for (var i = addr; i < addr+this.vertices[addr]['len'];) {
     var t = document.createElement('div');
     t.className = 'line';
@@ -264,14 +387,14 @@ Graph.prototype.reverseEdge = function(edgenum) {
 Graph.prototype.addEdge = function(v1, v2, color) {
   p('add edge '+shex(v1)+' -> '+shex(v2));
   var reversed = false;
-  if (v1 > v2) {
+  /*if (v1 > v2) {
     var t = v2;
     v2 = v1;
     v1 = t;
     reversed = true;
-  }
-  //this.addVertex(v1);
-  //this.addVertex(v2);
+  }*/
+  this.addVertex(v1);
+  this.addVertex(v2);
   this.edges.push({'from': v1, 'to': v2, 'color': color, 'reversed': reversed});
   this.vertices[v1]['children'].push(v2);
   this.vertices[v2]['parents'].push(v1);
