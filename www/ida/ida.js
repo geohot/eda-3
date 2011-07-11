@@ -68,9 +68,11 @@ IDAViewport.prototype.focus = function(addr, nopush) {
         for (var k = 0; k < flow.length; k++) {
           if (flow[k].substr(0,1) == 'O') {
             outs[j].push(fhex(flow[k].substr(1))+'-green');
+            //outs[j].push(fhex(flow[k].substr(1)));
             ins[fhex(flow[k].substr(1))].push(j);
 
             outs[j].push((j+len)+'-red');
+            //outs[j].push((j+len));
             ins[j+len].push(j);
             nodefault = true;
           } else if (flow[k].substr(0,1) == 'A') {
@@ -101,7 +103,9 @@ IDAViewport.prototype.focus = function(addr, nopush) {
       addr = fnum(saddr);
       if (ins[addr].length > 1) {
         this.g.addVertex(start, addr-start);
-        this.g.addEdge(start, addr, "blue");
+        if (start != addr) {
+          this.g.addEdge(start, addr, "blue");
+        }
         start = addr;
       }
 
@@ -289,8 +293,8 @@ Graph.prototype.render = function() {
   req.open('POST', '/eda/graph/dot.php', false);
   req.send(send);
 
-  p(send);
-  p(req.response);
+  //p(send);
+  //p(req.response);
 
   var resp = req.response.split('\n');
 

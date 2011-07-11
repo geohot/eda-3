@@ -52,10 +52,10 @@ var db = {
     len = len || this.tags(addr)['len'];
     endian = endian || this.tags(addr)['endian'];
     if (endian == 'little') {
-      addr += length-1;
+      addr += len-1;
     }
     var ret = 0;
-    for (i=0;i<length;i++) {
+    for (i=0;i<len;i++) {
       ret <<= 8;
       ret |= this.raw(addr, 1)[0];
       if (endian == 'little') {

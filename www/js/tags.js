@@ -62,7 +62,7 @@ function parseDeref(ss) {
   var len = fnum(ss.substr(0,1));
   var endian = (ss.substr(1,1)=='l')?'little':'big';
 
-  //p('dereffing '+shex(paddr));
+  p('dereffing '+shex(paddr));
 
   var data = db.immed(paddr, len, endian);
 
