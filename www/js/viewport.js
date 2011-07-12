@@ -19,6 +19,8 @@ var KEY_ENTER = 13;
 var KEY_ESC = 27;
 var KEY_CTRL = 0x100;
 
+var KEY_SEMICOLON = 186;
+
 // constructor
 function Viewport(wrapper) {
   if (wrapper == undefined) return;
@@ -31,9 +33,11 @@ function Viewport(wrapper) {
   this.wrapper[0].appendChild(this.dom[0]);
   this.dialogBox = null;
 
+  this.selectedLine = null;
+
   window.onkeydown = function(e) {
     var keynum = e.which;
-    //p(keynum);
+    p('key: '+keynum);
     if (this.dialogBox != null) {
       if (keynum == KEY_ESC) {
         this.dialogDismiss(false);
@@ -51,6 +55,7 @@ function Viewport(wrapper) {
   }.bind(this);
 
   this.dom[0].onclick = function(e) {
+    p('click '+e.target.className);
     var binding = this.clickBindings[e.target.className];
     if (binding !== undefined) {
       binding(e.target);
@@ -58,6 +63,7 @@ function Viewport(wrapper) {
   }.bind(this);
 
   this.dom[0].ondblclick = function(e) {
+    p('dblclick '+e.target.className);
     var binding = this.dblClickBindings[e.target.className];
     if (binding !== undefined) {
       binding(e.target);
@@ -73,6 +79,14 @@ function Viewport(wrapper) {
   this.dom[0].onselectstart = function(e) { return false; }
 };
 
+Viewport.prototype.setSelectedLine = function(addr) {
+  if (this.selectedLine !== null) {
+    $('#'+this.selectedLine).removeClass('line_selected');
+  }
+  this.selectedLine = addr;
+  $('#'+this.selectedLine).addClass('line_selected');
+};
+
 Viewport.prototype.registerDefaultHandlers = function() {
   this.registerKeyHandler(asc('G'), function() {
     this.dialog("Jump to address", function(data) {
@@ -83,12 +97,29 @@ Viewport.prototype.registerDefaultHandlers = function() {
     }.bind(this));
   }.bind(this));
 
+  this.registerKeyHandler(KEY_SEMICOLON, function() {
+    if (this.selectedLine !== null) {
+      this.dialog("Enter comment", function(data) {
+        db.setTag(this.selectedLine, 'comment', data);
+      }.bind(this));
+    }
+  }.bind(this));
+
+
   this.registerKeyHandler(KEY_ESC, function() {
     window.history.back();
   });
 
   this.registerDblClickHandler('i_location', function(ele) {
     this.focus(fhex(ele.childNodes[0].value));
+  }.bind(this));
+
+  this.registerDblClickHandler('i_deref', function(ele) {
+    this.focus(fhex(ele.childNodes[0].value));
+  }.bind(this));
+
+  this.registerClickHandler('line', function(ele) {
+    this.setSelectedLine(fnum(ele.id));
   }.bind(this));
 
   window.onpopstate = function(e) {

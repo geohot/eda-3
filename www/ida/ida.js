@@ -9,7 +9,7 @@ var view;
 $(document).ready(function() {
   view = new IDAViewport($('#viewporthtmlwrapper'));
   view.registerDefaultHandlers();
-  view.focus(0x4778);
+  view.focus(0x4000A0D4);
 });
 
 function IDAViewport(wrapper) {
@@ -30,7 +30,95 @@ IDAViewport.prototype.focus = function(addr, nopush) {
   this.g = new Graph();
   this.dom[0].innerHTML = "";
 
-  var ins = {};
+  var bblocks = {};
+
+  var get_bblock_start = function(addr) {
+    for (sa in bblocks) {
+      var a = fnum(sa);
+      if (a <= addr && addr < a+bblocks[a]) return a;
+    }
+    return null;
+  };
+
+  var bblock_split = function(addr) {
+    for (sa in bblocks) {
+      var a = fnum(sa);
+      if (a == addr) return;
+      if (a == addr+bblocks[a]) return;
+      if (a < addr && addr < (a+bblocks[a])) {
+        bblocks[addr] = bblocks[a] - (addr-a);
+        bblocks[a] = addr-a;
+        return;
+      }
+    }
+    p('CANT SPLIT BBLOCK '+shex(addr));
+  };
+
+  var extents = functiontag.split(' ');
+  for (var i = 0; i < extents.length; i++) {
+    var extent = extents[i].split(':');
+    var extent_addr = fhex(extent[0]);
+    var extent_len = fhex(extent[1]);
+    db.precache(extent_addr, extent_len);
+    p('processing extent '+shex(extent_addr)+'-'+shex(extent_addr + extent_len));
+    bblocks[extent_addr] = extent_len;
+  }
+
+  var edges_pending = [];
+
+  for (var i = 0; i < extents.length; i++) {
+    var extent = extents[i].split(':');
+    var extent_addr = fhex(extent[0]);
+    var extent_len = fhex(extent[1]);
+    for (var j = extent_addr; j < (extent_addr + extent_len);) {
+      var tags = db.tags(j);
+      var len = fnum(tags['len']);
+
+      if (tags['flow'] !== undefined) {
+        var flow = eval(tags['flow']);
+        p('flow @ '+shex(j)+' : '+flow);
+        for (var k = 0; k < flow.length; k++) {
+          if (flow[k].substr(0,1) == 'O') {
+            var t = fhex(flow[k].substr(1));
+            bblock_split(t);
+            bblock_split(j+len);
+            edges_pending.push([j, j+len, 'red']);
+            edges_pending.push([j, t, 'green']);
+          } else if (flow[k].substr(0,1) == 'A') {
+            var t = fhex(flow[k].substr(1));
+            bblock_split(t);
+            bblock_split(j+len);
+            edges_pending.push([j, t, 'blue']);
+          } else if (flow[k].substr(0,1) == 'R') {
+            bblock_split(j+len);
+          }
+        }
+      }
+
+      j += len;
+    }
+  }
+
+  for (b in bblocks) {
+    this.g.addVertex(fnum(b), bblocks[b]);
+  }
+
+  p(edges_pending);
+  for (var i=0; i<edges_pending.length; i++) {
+    this.g.addEdge(get_bblock_start(edges_pending[i][0]), edges_pending[i][1], edges_pending[i][2]);
+  }
+
+  for (b in bblocks) {
+    var a = fnum(b);
+    if (this.g.vertices[a].children.length == 0) {
+      var ta = get_bblock_start(a+bblocks[a]);
+      if (ta !== null) {
+        this.g.addEdge(a, ta, 'blue');
+      }
+    }
+  }
+
+  /*var ins = {};
   var outs = {};
   var defaults = {};
 
@@ -41,7 +129,7 @@ IDAViewport.prototype.focus = function(addr, nopush) {
     var extent_len = fhex(extent[1]);
     db.precache(extent_addr, extent_len);
     p('processing extent '+shex(extent_addr)+'-'+shex(extent_addr + extent_len));
-    for (var j = extent_addr; j <= (extent_addr + extent_len);) {
+    for (var j = extent_addr; j < (extent_addr + extent_len);) {
       var tags = db.tags(j);
       if (tags['len'] === undefined) {
         p('!!!ERROR, no length tag in function');
@@ -51,10 +139,18 @@ IDAViewport.prototype.focus = function(addr, nopush) {
       outs[j] = [];
       j += len;
     }
+  }
 
+  p(ins);
+  p(outs);
+  p('swagg');
+
+  for (var i = 0; i < extents.length; i++) {
+    var extent = extents[i].split(':');
+    var extent_addr = fhex(extent[0]);
+    var extent_len = fhex(extent[1]);
     var end;
-
-    for (var j = extent_addr; j <= (extent_addr + extent_len);) {
+    for (var j = extent_addr; j < (extent_addr + extent_len);) {
       var tags = db.tags(j);
       if (tags['len'] === undefined) {
         p('!!!ERROR, no length tag in function');
@@ -122,8 +218,7 @@ IDAViewport.prototype.focus = function(addr, nopush) {
         }
         start = addr+len;
       }
-
-    }
+    }*/
 
     /*p(bbreaks);
     p(paths);
@@ -144,8 +239,8 @@ IDAViewport.prototype.focus = function(addr, nopush) {
         }
       }
       this.g.addEdge(from, to);
-    }*/
-  }
+    }
+  }*/
   this.g.render();
 };
 
@@ -293,15 +388,15 @@ Graph.prototype.render = function() {
   req.open('POST', '/eda/graph/dot.php', false);
   req.send(send);
 
-  //p(send);
-  //p(req.response);
+  p(send);
+  p(req.response);
 
   var resp = req.response.split('\n');
 
   var gdata = resp[2].split('"')[1].split(',');
 
-  gbox.style.width = gdata[2];
-  gbox.style.height = gdata[3];
+  gbox.style.width = fnum(gdata[2])+10;
+  gbox.style.height = fnum(gdata[3])+10;
 
   gbox.style.position = "absolute";
   gbox.style.left = "50";
@@ -309,6 +404,7 @@ Graph.prototype.render = function() {
 
   for (var i = 3;true;i++) {
     if (resp[i].indexOf('->') != -1) break;
+    if (resp[i].indexOf('}') != -1) break;
 
     var addr = resp[i].split(' ')[0].split('N')[1];
     var pos = resp[i].slice(resp[i].indexOf('pos=')).split('"')[1].split(',');
@@ -350,15 +446,21 @@ Graph.prototype.placeBoxes = function() {
 Graph.prototype.renderVertex = function(addr) {
   var ret = document.createElement('div');
   ret.className = 'block';
-  var a = document.createElement('div');
+  /*var a = document.createElement('div');
   a.className = 'line';
   a.innerHTML = displayParsed('\\l{'+addr+'}');
-  ret.appendChild(a);
+  ret.appendChild(a);*/
   for (var i = addr; i < addr+this.vertices[addr]['len'];) {
     var t = document.createElement('div');
     t.className = 'line';
+    t.id = i;
     var tags = db.tags(i);
+    p(shex(i));
+    p(tags);
     t.innerHTML = displayParsed(tags['parsed']);
+    if (tags['comment'] !== undefined) {
+      t.innerHTML += '<span class="comment">; '+tags['comment']+'</span>';
+    }
     ret.appendChild(t);
     i += fnum(tags['len']);
   }

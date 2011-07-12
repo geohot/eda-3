@@ -92,6 +92,14 @@ function mergeObjects(obj1, obj2) {
   return obj1;
 }
 
+function upload_tags_to_server() {
+  setMultiTagAsync(JSON.stringify(tagsList), function() {
+    elapsedtime = (new Date).getTime() - starttime;
+    l('tags uploaded in '+(elapsedtime/1000.)+' seconds');
+  });
+}
+
+
 function analyze_function() {
   if (going == false) {
     return;
@@ -99,10 +107,7 @@ function analyze_function() {
   if (calls.length == 0) {
     var elapsedtime = (new Date).getTime() - starttime;
     l('done in '+(elapsedtime/1000.)+' seconds, uploading...');
-    setMultiTagAsync(JSON.stringify(tagsList), function() {
-      elapsedtime = (new Date).getTime() - starttime;
-      l('tags uploaded in '+(elapsedtime/1000.)+' seconds');
-    });
+    upload_tags_to_server();
     return;
   }
   var call = calls.pop();
@@ -128,6 +133,7 @@ function analyze_function() {
     var inst = parseInstruction(addr, rawdata.subarray(addr-rangestart));
     if (inst === null) {
       l('undefined instruction @ '+shex(addr));
+      upload_tags_to_server();
       return;
     }
     stack.push(addr + inst['len']);
@@ -172,8 +178,9 @@ function analyze_function() {
     fi.sort();
     var extentaddr = fi[0];
     var extentlength = 0;
-    for (var i = 0; i < (fi.length-1); i++) {
+    for (var i = 0; true; i++) {
       extentlength += tagsList[fi[i]]['len'];
+      if (i == fi.length-1) break;
       if ( (fi[i] + tagsList[fi[i]]['len']) != fi[i+1]) {
         if (func != "") func += " ";
         func += shex(extentaddr)+":"+shex(extentlength);

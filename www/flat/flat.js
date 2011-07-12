@@ -63,6 +63,9 @@ FlatViewport.prototype.render = function() {
                          +'</td>';
     if (tags['parsed'] !== undefined) {
       html += '<td width="300px">' + displayParsed(tags['parsed']) + '</td>';
+      if (tags['flow'] !== undefined) {
+        html += '<td>' + tags['flow'] + '</td>';
+      }
     } else if (tags['endian'] !== undefined) {
       html += '<td>'+
         displayImmedFromRaw(fnum(tags['len']),

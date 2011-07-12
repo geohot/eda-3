@@ -41,6 +41,9 @@ var db = {
     p("cache miss ");
     return this.data_cache[addr];
   },
+  setTag: function(addr, name, data) {
+    setTag(addr, name, data);
+  },
   tags: function(addr) {
     if (this.tags_cache[addr] === undefined) {
       this.tags_cache[addr] = getTags(addr);
