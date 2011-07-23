@@ -9,7 +9,7 @@ var view;
 $(document).ready(function() {
   view = new IDAViewport($('#viewporthtmlwrapper'));
   view.registerDefaultHandlers();
-  view.focus(0x4000A0D4);
+  view.focus(0x50DC);
 });
 
 function IDAViewport(wrapper) {
@@ -76,7 +76,7 @@ IDAViewport.prototype.focus = function(addr, nopush) {
 
       if (tags['flow'] !== undefined) {
         var flow = eval(tags['flow']);
-        p('flow @ '+shex(j)+' : '+flow);
+        //p('flow @ '+shex(j)+' : '+flow);
         for (var k = 0; k < flow.length; k++) {
           if (flow[k].substr(0,1) == 'O') {
             var t = fhex(flow[k].substr(1));
@@ -103,7 +103,7 @@ IDAViewport.prototype.focus = function(addr, nopush) {
     this.g.addVertex(fnum(b), bblocks[b]);
   }
 
-  p(edges_pending);
+  //p(edges_pending);
   for (var i=0; i<edges_pending.length; i++) {
     this.g.addEdge(get_bblock_start(edges_pending[i][0]), edges_pending[i][1], edges_pending[i][2]);
   }
@@ -272,7 +272,7 @@ Graph.prototype.addVertex = function(addr, vlen) {
     this.vertices[addr]['level'] = undefined;  // useless?
   }
   if (vlen !== undefined) {
-    p('add vertex '+shex(addr)+' - '+shex(addr+vlen));
+    //p('add vertex '+shex(addr)+' - '+shex(addr+vlen));
     this.vertices[addr]['len'] = vlen;
     this.vertices[addr]['rendered'] = this.renderVertex(addr);
   }
@@ -389,9 +389,22 @@ Graph.prototype.render = function() {
   req.send(send);
 
   p(send);
-  p(req.response);
 
-  var resp = req.response.split('\n');
+  var i;
+  var respfirst = req.response.split('\n');
+  var resp = [];
+
+  for (var i=0; i<respfirst.length; i++) {
+    var str = respfirst[i];
+    while (str.substr(str.length-1) === "\\") {
+      str = str.substr(0, str.length-1);
+      i++;
+      str += respfirst[i];
+    }
+    resp.push(str);
+  }
+
+  p(resp.join("\n"));
 
   var gdata = resp[2].split('"')[1].split(',');
 
@@ -402,7 +415,7 @@ Graph.prototype.render = function() {
   gbox.style.left = "50";
   gbox.style.top = "50";
 
-  for (var i = 3;true;i++) {
+  for (i = 3;true;i++) {
     if (resp[i].indexOf('->') != -1) break;
     if (resp[i].indexOf('}') != -1) break;
 
@@ -414,15 +427,54 @@ Graph.prototype.render = function() {
     r.style.position = "absolute";
     r.style.left = fnum(pos[0]) - (r.offsetWidth/2);
     r.style.top = fnum(gdata[3]) - (fnum(pos[1]) + (r.offsetHeight/2));
+    //r.style.opacity = ".3";
+    //r.style.visibility = "hidden";
   }
 
-  var lines = new Image(fnum(gdata[2]), fnum(gdata[3])+3);
+  var canvas = document.createElement("canvas");
+  canvas.width = fnum(gdata[2])+10;
+  canvas.height = fnum(gdata[3])+10;
+  gbox.appendChild(canvas);
+  var ctx = canvas.getContext("2d");
+
+  while(true) {
+    if (resp[i].indexOf('}') != -1) break;
+    var color = resp[i].substr(resp[i].indexOf('color=')+6).split(',')[0];
+    var posstr = resp[i].substr(resp[i].indexOf('pos="')+7).split('"')[0].split(' ');
+    var pos = [];
+    for (var j=0; j<(posstr.length); j++) {
+      var to = posstr[j].split(',');
+      pos.push({x:parseFloat(to[0]), y:fnum(gdata[3]) - parseFloat(to[1])});
+    }
+
+
+    ctx.beginPath();
+    // pos[0] is end
+    // pos[1] is start
+    ctx.moveTo(pos[1].x, pos[1].y);
+    for (var j=2; j<pos.length; j+=3) {
+      ctx.bezierCurveTo(pos[j].x, pos[j].y, pos[j+1].x, pos[j+1].y, pos[j+2].x, pos[j+2].y);
+    }
+    ctx.lineTo(pos[0].x, pos[0].y);
+
+    if (pos[1].y < pos[0].y) {
+      ctx.lineWidth = 1;
+    } else {
+      ctx.lineWidth = 2;
+    }
+
+    ctx.strokeStyle = color;
+    ctx.stroke();
+    i++;
+  }
+
+  /*var lines = new Image(fnum(gdata[2]), fnum(gdata[3])+3);
   lines.src = "/eda/graph/out.gif?"+Math.random();
   lines.style.position = "absolute";
   lines.style.top = "0";
   lines.style.left = "0";
   lines.style.zIndex = -2;
-  gbox.appendChild(lines);
+  gbox.appendChild(lines);*/
   //p(resp);
   return;
 };
@@ -455,8 +507,8 @@ Graph.prototype.renderVertex = function(addr) {
     t.className = 'line';
     t.id = i;
     var tags = db.tags(i);
-    p(shex(i));
-    p(tags);
+    //p(shex(i));
+    //p(tags);
     t.innerHTML = displayParsed(tags['parsed']);
     if (tags['comment'] !== undefined) {
       t.innerHTML += '<span class="comment">; '+tags['comment']+'</span>';
@@ -491,7 +543,7 @@ Graph.prototype.reverseEdge = function(edgenum) {
 
 // v1 -> v2
 Graph.prototype.addEdge = function(v1, v2, color) {
-  p('add edge '+shex(v1)+' -> '+shex(v2));
+  //p('add edge '+shex(v1)+' -> '+shex(v2));
   var reversed = false;
   /*if (v1 > v2) {
     var t = v2;

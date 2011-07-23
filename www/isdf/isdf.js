@@ -2,29 +2,26 @@
 // Copyright 2011 George Hotz. All rights reserved.
 
 // iset and endian have moved to parser
-var unsaved;
 
 $(document).ready(function() {
   registerObjectEditor('local', localSaveCallback);
-  registerObjectEditor('parsed', localSaveCallback);
+  registerObjectEditor('parsed', localSaveCallbackParsed);
   registerObjectEditor('env', localSaveCallback);
 
-  setiset('arm');
-  runtest(false);
+  setiset('thumb');
+  //runtest(false);
 });
 
 function savetoserver() {
   var req = new XMLHttpRequest();
   req.open('POST', '/eda/isdf/saveiset.php', false);
   req.send(package_iset());
-  unsaved = false;
+  if (req.response.length != 0) {
+    alert("SAVE FAILED!!!");
+  }
 }
 
 function loadfromserver() {
-  if (unsaved == true) {
-    alert('you have unsaved changes!');
-    return;
-  }
   var req = new XMLHttpRequest();
   req.open('GET', '/eda/isdf/loadiset.php?iset='+iset, false);
   req.send(null);
@@ -32,6 +29,15 @@ function loadfromserver() {
   if (big_obj['iset'] != iset) {
     p('load failed');
     return;
+  }
+
+  if (localStorage[iset+'_local'] != JSON.stringify(big_obj['local']) ||
+      localStorage[iset+'_parsed'] != JSON.stringify(big_obj['parsed']) ||
+      localStorage[iset+'_env'] != JSON.stringify(big_obj['env']) ||
+      localStorage[iset+'_endian'] != big_obj['endian']) {
+    if(!confirm("you have unsaved changes, overwrite?")) {
+      return;
+    }
   }
 
   localStorage[iset+'_local'] = JSON.stringify(big_obj['local']);
@@ -106,16 +112,15 @@ function setiset(new_iset) {
   endian = localStorage[iset+'_endian'];
   $('#endian')[0].value = endian;
   localSaveCallback(null, null, 'local');
-  localSaveCallback(null, null, 'parsed');
+  localSaveCallbackParsed(null, null, 'parsed');
   localSaveCallback(null, null, 'env');
-  unsaved = false;
 }
 
 function setenvtags() {
-  var env = jQuery.parseJSON(localStorage[iset+'_env']);
+  var env = JSON.parse(localStorage[iset+'_env']);
   for (haddr in env) {
     var addr = fhex(haddr);
-    var settags = jQuery.parseJSON(env[haddr].replace(/'/g,'"'));
+    var settags = JSON.parse(env[haddr].replace(/'/g,'"'));
     for (tag in settags) {
       setTag(addr, tag, settags[tag]);
     }
@@ -130,7 +135,7 @@ function setendian(new_endian) {
 
 function localSaveCallback(key, value, name) {
   //p(name+': '+key+' = '+value);
-  var locale = jQuery.parseJSON(localStorage[iset+'_'+name]);
+  var locale = JSON.parse(localStorage[iset+'_'+name]);
   if (locale == null) {
     locale = {};
   }
@@ -143,7 +148,35 @@ function localSaveCallback(key, value, name) {
     localStorage[iset+'_'+name] = JSON.stringify(locale);
   }
   updateObjectEditor(name, locale, 40, 150);
-  unsaved = true;
 }
 
+function localSaveCallbackParsed(key, value, name, index) {
+  //p(name+': '+key+' = '+value);
+  var locale = JSON.parse(localStorage[iset+'_'+name]);
+  if (locale == null) {
+    locale = {};
+  }
+  if (key !== null) {
+    if (index === -1) {
+      locale[key] = [];
+    } else {
+      locale[key][index] = value;
+      var dodelete = true;
+      for (var i = 0; i < locale[key].length; i++) {
+        if (locale[key][i] !== "" &&
+            locale[key][i] !== null &&
+            locale[key][i] !== undefined) {
+          dodelete = false;
+          break;
+        }
+      }
+      if (dodelete) {
+        delete locale[key];
+      }
+    }
+
+    localStorage[iset+'_'+name] = JSON.stringify(locale);
+  }
+  updateObjectEditorArray(name, locale, 40, 150, 3);
+}
 

@@ -34,11 +34,11 @@ function rebuildParser() {
   var parsed = jQuery.parseJSON(localStorage[iset+'_parsed']);
   endian = localStorage[iset+'_endian'];
 
-  local_built = "";
+  local_built = [];
   for (f in local) {
     var fname = f.substr(0, f.indexOf('('));
     var fparams = f.substr(f.indexOf('('));
-    local_built += 'var '+fname+' = function'+fparams+'{'+local[f]+'};';
+    local_built.push('var '+fname+' = function'+fparams+'{'+local[f]+'};');
   }
 
   parsed_built = [];
@@ -71,7 +71,7 @@ function rebuildParser() {
     obj['letters'] = letters;
     obj['k'] = k;
     obj['bytecount'] = (k.length)/8;
-    obj['out'] = parsed[sk];
+    obj['out'] = parsed[sk][0];  // change to support the new format
     parsed_built.push(obj);
   }
 
@@ -159,7 +159,13 @@ var parseInstruction;
 function setupParseInstruction() {
   var addr;
   var meta_retobj;
-  eval(local_built);
+  for (var i = 0;i < local_built.length; i++) {
+    try {
+      eval(local_built[i]);
+    } catch(err) {
+      p(err+' *** '+local_built[i]);
+    }
+  }
 
 // these are functions accessible to the parser
   var addFlow = function(addr, t) {
@@ -176,6 +182,12 @@ function setupParseInstruction() {
     }
     meta_retobj['flow'].push('R');
     return '';
+  };
+
+// these are function accessible to the computer
+  var s32 = function(addr, val) {
+    var val32 = val & 0xFFFFFFFF;
+    p('setting '+shex(addr)+' = '+shex(val32));
   };
 
 // addr is available to the inside functions, hence no meta

@@ -32,6 +32,6 @@ function submit() {
 file_put_contents('/tmp/in.dot', $data);
 
 system('dot /tmp/in.dot');
-system('dot /tmp/in.dot -Tgif > /tmp/out.gif');
+#system('dot /tmp/in.dot -Tgif > /tmp/out.gif');
 
 
