@@ -274,7 +274,7 @@ Graph.prototype.addVertex = function(addr, vlen) {
   if (vlen !== undefined) {
     //p('add vertex '+shex(addr)+' - '+shex(addr+vlen));
     this.vertices[addr]['len'] = vlen;
-    this.vertices[addr]['rendered'] = this.renderVertex(addr);
+    //this.vertices[addr]['rendered'] = this.renderVertex(addr);
   }
 };
 
@@ -364,9 +364,19 @@ Graph.prototype.render = function() {
   this.debugPrint();
   this.placeBoxes();*/
 
+  p('rendering...');
+
+  // render vertices here instead
+  for (addr in this.vertices) {
+    if (this.vertices[addr]['len'] !== undefined) {
+      this.vertices[addr]['rendered'] = this.renderVertex(fnum(addr));
+    }
+  }
+
   var send = "digraph graphname {\n";
 
   var gbox = document.createElement('div');
+  view.dom[0].innerHTML = ""; // what a hack...
   view.dom[0].appendChild(gbox);
 
   for (saddr in this.vertices) {
@@ -447,7 +457,7 @@ Graph.prototype.render = function() {
       pos.push({x:parseFloat(to[0]), y:fnum(gdata[3]) - parseFloat(to[1])});
     }
 
-
+    // draw spline
     ctx.beginPath();
     // pos[0] is end
     // pos[1] is start
@@ -465,6 +475,16 @@ Graph.prototype.render = function() {
 
     ctx.strokeStyle = color;
     ctx.stroke();
+
+    // draw arrow
+    ctx.beginPath();
+    ctx.moveTo(pos[0].x, pos[0].y);
+    ctx.lineTo(pos[0].x-5, pos[0].y-10);
+    ctx.lineTo(pos[0].x+5, pos[0].y-10);
+    ctx.lineWidth = 1;
+    ctx.fillStyle = color;
+    ctx.fill();
+
     i++;
   }
 
@@ -498,10 +518,12 @@ Graph.prototype.placeBoxes = function() {
 Graph.prototype.renderVertex = function(addr) {
   var ret = document.createElement('div');
   ret.className = 'block';
-  /*var a = document.createElement('div');
+
+  var a = document.createElement('div');
   a.className = 'line';
   a.innerHTML = displayParsed('\\l{'+addr+'}');
-  ret.appendChild(a);*/
+  ret.appendChild(a);
+
   for (var i = addr; i < addr+this.vertices[addr]['len'];) {
     var t = document.createElement('div');
     t.className = 'line';

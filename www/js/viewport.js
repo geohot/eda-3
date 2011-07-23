@@ -34,6 +34,7 @@ function Viewport(wrapper) {
   this.dialogBox = null;
 
   this.selectedLine = null;
+  this.selectedLocation = null;
 
   window.onkeydown = function(e) {
     var keynum = e.which;
@@ -54,20 +55,30 @@ function Viewport(wrapper) {
     }
   }.bind(this);
 
+  var handleWithBindings = function(e, bindings) {
+    var node = e.target;
+    while (node.className != 'viewport') {
+      p('  '+node.className);
+      var classes = node.className.split(' ');
+      for (var i = 0; i < classes.length; i++) {
+        var binding = bindings[classes[i]];
+        if (binding !== undefined) {
+          var stop = binding(node);
+          if (stop === true) break;
+        }
+      }
+      node = node.parentNode;
+    }
+  };
+
   this.dom[0].onclick = function(e) {
     p('click '+e.target.className);
-    var binding = this.clickBindings[e.target.className];
-    if (binding !== undefined) {
-      binding(e.target);
-    }
+    handleWithBindings(e, this.clickBindings);
   }.bind(this);
 
   this.dom[0].ondblclick = function(e) {
     p('dblclick '+e.target.className);
-    var binding = this.dblClickBindings[e.target.className];
-    if (binding !== undefined) {
-      binding(e.target);
-    }
+    handleWithBindings(e, this.dblClickBindings);
   }.bind(this);
 
   this.dom[0].onmousewheel = function(e) {
@@ -80,11 +91,27 @@ function Viewport(wrapper) {
 };
 
 Viewport.prototype.setSelectedLine = function(addr) {
+  p('selected '+shex(addr));
   if (this.selectedLine !== null) {
     $('#'+this.selectedLine).removeClass('line_selected');
+    this.selectedLine = null;
   }
-  this.selectedLine = addr;
-  $('#'+this.selectedLine).addClass('line_selected');
+  if ($('#'+addr).length != 0) {
+    this.selectedLine = addr;
+    $('#'+this.selectedLine).addClass('line_selected');
+  }
+  return false;
+};
+
+Viewport.prototype.setSelectedLocation = function(ele) {
+  if (this.selectedLocation !== null) {
+    $(this.selectedLocation).removeClass('location_selected');
+  }
+  this.selectedLocation = ele;
+  if (ele !== null) {
+    $(this.selectedLocation).addClass('location_selected');
+  }
+  return false;
 };
 
 Viewport.prototype.registerDefaultHandlers = function() {
@@ -101,7 +128,18 @@ Viewport.prototype.registerDefaultHandlers = function() {
     if (this.selectedLine !== null) {
       this.dialog("Enter comment", function(data) {
         db.setTag(this.selectedLine, 'comment', data);
-      }.bind(this));
+        this.g.render();
+      }.bind(this), db.tags(this.selectedLine)['comment']);
+    }
+  }.bind(this));
+
+  this.registerKeyHandler(asc('N'), function() {
+    if (this.selectedLocation !== null) {
+      var loc = fhex(this.selectedLocation.childNodes[0].value);
+      this.dialog("Rename 0x"+shex(loc), function(data) {
+        db.setTag(loc, 'name', data);
+        this.g.render();
+      }.bind(this), db.tags(loc)['name']);
     }
   }.bind(this));
 
@@ -119,7 +157,15 @@ Viewport.prototype.registerDefaultHandlers = function() {
   }.bind(this));
 
   this.registerClickHandler('line', function(ele) {
-    this.setSelectedLine(fnum(ele.id));
+    return this.setSelectedLine(fnum(ele.id));
+  }.bind(this));
+
+  this.registerClickHandler('i_location', function(ele) {
+    return this.setSelectedLocation(ele);
+  }.bind(this));
+
+  this.registerClickHandler('i_deref', function(ele) {
+    return this.setSelectedLocation(ele);
   }.bind(this));
 
   window.onpopstate = function(e) {
@@ -156,7 +202,8 @@ Viewport.prototype.dialogDismiss = function(do_callback) {
   this.dom[0].style.opacity = 1;
 };
 
-Viewport.prototype.dialog = function(text, callback) {
+Viewport.prototype.dialog = function(text, callback, inputvalue) {
+  inputvalue = inputvalue || "";
   this.dom[0].style.opacity = 0.6;
 
   this.dialogBox = document.createElement('div');
@@ -165,6 +212,7 @@ Viewport.prototype.dialog = function(text, callback) {
   var dialogText = document.createElement('div');
   dialogText.innerHTML = text;
   this.dialogInput = document.createElement('input');
+  this.dialogInput.value = inputvalue;
   this.dialogCallback = callback;
 
   this.dialogBox.appendChild(dialogText);

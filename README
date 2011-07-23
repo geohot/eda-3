@@ -62,4 +62,5 @@ Implemented tags:
 Considering tags:
 * func -- JSON object of function extents on first byte of function, ex "{0x3A30:0x50}"
 * compiled -- the javascript code that actually runs the instruction, can call instruction set locals
+* mmio -- javascript to run when this is read or written
 

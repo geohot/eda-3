@@ -42,6 +42,11 @@ var db = {
     return this.data_cache[addr];
   },
   setTag: function(addr, name, data) {
+    if (data != "") {
+      this.tags_cache[addr][name] = data;
+    } else {
+      delete this.tags_cache[addr][name];
+    }
     setTag(addr, name, data);
   },
   tags: function(addr) {

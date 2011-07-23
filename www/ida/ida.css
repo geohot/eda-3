@@ -21,6 +21,10 @@
   background-color: #FFE0E0;
 }
 
+.location_selected {
+  background-color: orange;
+}
+
 .comment {
   color: blue;
   padding-left: 30px;

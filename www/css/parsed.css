@@ -28,7 +28,8 @@
 }
 
 .i_location {
-  color: darkslateblue;
+  /*color: darkslateblue;*/
+  color: blue;
 }
 
 .i_corelocation {
