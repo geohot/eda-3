@@ -72,6 +72,9 @@ var db = {
         addr += 1;
       }
     }
+
+    // negative numbers suck
+    if(ret < 0) ret = 0x100000000+ret;
     return ret;
   }
 };

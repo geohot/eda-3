@@ -9,7 +9,8 @@ var view;
 $(document).ready(function() {
   view = new IDAViewport($('#viewporthtmlwrapper'));
   view.registerDefaultHandlers();
-  view.focus(0x50DC);
+  //view.focus(0x50DC);
+  view.focus(0x80108000);
 });
 
 function IDAViewport(wrapper) {
@@ -398,7 +399,7 @@ Graph.prototype.render = function() {
   req.open('POST', '/eda/graph/dot.php', false);
   req.send(send);
 
-  p(send);
+  //p(send);
 
   var i;
   var respfirst = req.response.split('\n');
@@ -414,7 +415,7 @@ Graph.prototype.render = function() {
     resp.push(str);
   }
 
-  p(resp.join("\n"));
+  //p(resp.join("\n"));
 
   var gdata = resp[2].split('"')[1].split(',');
 

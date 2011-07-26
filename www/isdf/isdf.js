@@ -8,7 +8,7 @@ $(document).ready(function() {
   registerObjectEditor('parsed', localSaveCallbackParsed);
   registerObjectEditor('env', localSaveCallback);
 
-  setiset('thumb');
+  setiset('arm');
   //runtest(false);
 });
 

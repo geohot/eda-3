@@ -38,7 +38,7 @@ function Viewport(wrapper) {
 
   window.onkeydown = function(e) {
     var keynum = e.which;
-    p('key: '+keynum);
+    //p('key: '+keynum);
     if (this.dialogBox != null) {
       if (keynum == KEY_ESC) {
         this.dialogDismiss(false);
@@ -57,8 +57,8 @@ function Viewport(wrapper) {
 
   var handleWithBindings = function(e, bindings) {
     var node = e.target;
-    while (node.className != 'viewport') {
-      p('  '+node.className);
+    while (node && node.className != 'viewport') {
+      //p('  '+node.className);
       var classes = node.className.split(' ');
       for (var i = 0; i < classes.length; i++) {
         var binding = bindings[classes[i]];
@@ -91,7 +91,6 @@ function Viewport(wrapper) {
 };
 
 Viewport.prototype.setSelectedLine = function(addr) {
-  p('selected '+shex(addr));
   if (this.selectedLine !== null) {
     $('#'+this.selectedLine).removeClass('line_selected');
     this.selectedLine = null;
@@ -99,6 +98,7 @@ Viewport.prototype.setSelectedLine = function(addr) {
   if ($('#'+addr).length != 0) {
     this.selectedLine = addr;
     $('#'+this.selectedLine).addClass('line_selected');
+    p('selected '+shex(addr));
   }
   return false;
 };
@@ -193,7 +193,11 @@ Viewport.prototype.registerDblClickHandler = function(classname, fxn) {
 
 Viewport.prototype.dialogDismiss = function(do_callback) {
   var box = $(this.dialogBox);
-  var value = this.dialogInput.value;
+  var value;
+  if (this.dialogInput.value !== undefined) {
+    var value = this.dialogInput.value;
+  }
+
   this.dialogBox = null;
   if (do_callback === true) {
     this.dialogCallback(value);
@@ -202,18 +206,41 @@ Viewport.prototype.dialogDismiss = function(do_callback) {
   this.dom[0].style.opacity = 1;
 };
 
+Viewport.prototype.dialogList = function(test, callback, list) {
+  this.dom[0].style.opacity = 0.6;
+
+  this.dialogBox = document.createElement('div');
+  this.dialogBox.className = 'dialogBox';
+  this.dialogCallback = callback;
+  var dialogText = document.createElement('div');
+  dialogText.innerHTML = text;
+
+  this.dialogInput = document.createElement('table');
+  var ih = "";
+  for (var i = 0; i < list.length; i++) {
+
+  }
+
+  this.dialogInput.innerHTML = "";
+
+  this.dialogBox.appendChild(dialogText);
+  this.dialogBox.appendChild(this.dialogInput);
+
+  this.wrapper[0].appendChild(this.dialogBox);
+};
+
 Viewport.prototype.dialog = function(text, callback, inputvalue) {
   inputvalue = inputvalue || "";
   this.dom[0].style.opacity = 0.6;
 
   this.dialogBox = document.createElement('div');
   this.dialogBox.className = 'dialogBox';
-
+  this.dialogCallback = callback;
   var dialogText = document.createElement('div');
   dialogText.innerHTML = text;
+
   this.dialogInput = document.createElement('input');
   this.dialogInput.value = inputvalue;
-  this.dialogCallback = callback;
 
   this.dialogBox.appendChild(dialogText);
   this.dialogBox.appendChild(this.dialogInput);
@@ -222,4 +249,5 @@ Viewport.prototype.dialog = function(text, callback, inputvalue) {
 
   this.dialogInput.focus();
 };
+
 

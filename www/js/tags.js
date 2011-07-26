@@ -53,6 +53,7 @@ function displayParsed(parsed) {
 
 function parseImmed(immed) {
   var i = fnum(immed);
+  //if (i < 0) i = ~i;
   if (i < 10) return shex(i);
   else return '0x'+shex(i);
 }
@@ -62,7 +63,7 @@ function parseDeref(ss) {
   var len = fnum(ss.substr(0,1));
   var endian = (ss.substr(1,1)=='l')?'little':'big';
 
-  p('dereffing '+shex(paddr));
+  //p('dereffing '+shex(paddr));
 
   var data = db.immed(paddr, len, endian);
 

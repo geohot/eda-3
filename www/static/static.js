@@ -128,14 +128,20 @@ function analyze_function() {
     if (seen[addr] === true) {
       continue;
     }
-    fi.push(addr);
-    seen[addr] = true;
+    if (addr < rangestart || addr > (rangestart + rangelength)) {
+      p('out of range: '+shex(addr));
+      continue;
+    }
     var inst = parseInstruction(addr, rawdata.subarray(addr-rangestart));
     if (inst === null) {
       l('undefined instruction @ '+shex(addr));
-      upload_tags_to_server();
-      return;
+      // not fatal
+      continue;
+      /*upload_tags_to_server();
+      return;*/
     }
+    fi.push(addr);
+    seen[addr] = true;
     stack.push(addr + inst['len']);
 
     tagsList[addr] = mergeObjects(tagsList[addr], getCommitObject(inst));
