@@ -6,11 +6,38 @@ require('js/viewport.js');
 
 var view;
 
+var gbox;
+
 $(document).ready(function() {
   view = new IDAViewport($('#viewporthtmlwrapper'));
   view.registerDefaultHandlers();
   //view.focus(0x50DC);
   view.focus(0x80108000);
+
+  var basex, basey;
+  var isDown = false;
+
+  window.onmousedown = function(e) {
+    isDown = true;
+    basex = e.x - fnum(gbox.style.left);
+    basey = e.y - fnum(gbox.style.top);
+  };
+
+  window.onmouseup = function(e) {
+    isDown = false;
+  };
+
+  window.onmousemove = function(e) {
+    if (isDown) {
+      gbox.style.left = e.x-basex;
+      gbox.style.top = e.y-basey;
+    }
+  };
+
+  window.onmousewheel = function(e) {
+    gbox.style.left = e.wheelDeltaX + fnum(gbox.style.left);
+    gbox.style.top = e.wheelDeltaY + fnum(gbox.style.top);
+  };
 });
 
 function IDAViewport(wrapper) {
@@ -21,12 +48,23 @@ IDAViewport.prototype = new Viewport();
 IDAViewport.prototype.constructor = IDAViewport;
 IDAViewport.prototype.parent = Viewport;
 
-IDAViewport.prototype.focus = function(addr, nopush) {
+IDAViewport.prototype.focus = function(addr_inner, nopush) {
+  var scope = db.tags(addr_inner)['scope'];
+  if (scope === undefined) return false;
+  var addr = fhex(scope);
+
+  if (addr == this.focused) {
+    this.setSelectedLine(addr_inner);
+    return false;
+  }
+
   var functiontag = db.tags(addr)['function'];
   if (functiontag === undefined) return false;
   if (nopush !== true) {
     window.history.pushState(addr);
   }
+
+  this.focused = addr;
 
   this.g = new Graph();
   this.dom[0].innerHTML = "";
@@ -243,6 +281,7 @@ IDAViewport.prototype.focus = function(addr, nopush) {
     }
   }*/
   this.g.render();
+  this.setSelectedLine(addr_inner);
 };
 
 IDAViewport.prototype.isAddressInFunction = function(addr) {
@@ -376,7 +415,7 @@ Graph.prototype.render = function() {
 
   var send = "digraph graphname {\n";
 
-  var gbox = document.createElement('div');
+  gbox = document.createElement('div');
   view.dom[0].innerHTML = ""; // what a hack...
   view.dom[0].appendChild(gbox);
 

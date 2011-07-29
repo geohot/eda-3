@@ -197,6 +197,10 @@ function analyze_function() {
     if (func != "") func += " ";
     func += shex(extentaddr)+":"+shex(extentlength);
 
+    for (var i = 0; i < fi.length; i++) {
+      tagsList[fi[i]]['scope'] = shex(faddr);
+    }
+
     tagsList[faddr] = mergeObjects(tagsList[faddr], {'function': func});
     l('f '+func, depth);
   }

@@ -27,3 +27,8 @@
   font-family: Courier New;
   font-size: 8pt;
 }
+
+.xrefBox {
+  background-color: white;
+  text-align: left;
+}

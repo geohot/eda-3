@@ -32,6 +32,7 @@ function Viewport(wrapper) {
   this.dom[0].className = "viewport";
   this.wrapper[0].appendChild(this.dom[0]);
   this.dialogBox = null;
+  this.focused = null;
 
   this.selectedLine = null;
   this.selectedLocation = null;
@@ -143,6 +144,24 @@ Viewport.prototype.registerDefaultHandlers = function() {
     }
   }.bind(this));
 
+  this.registerKeyHandler(asc('X'), function() {
+    var loc = fhex(this.selectedLocation.childNodes[0].value);
+    p(loc);
+    var flow = eval(db.tags(loc)['flow']);
+    if (flow !== undefined) {
+      var xrefs = flow.filter(function(x) { if(x.substr(0,1)=='X') return true; });
+      for (var i=0;i<xrefs.length;i++) {
+        xrefs[i] = displayParsed('\\l{'+fhex(xrefs[i].substr(1))+'}');
+      }
+      if (xrefs.length > 0) {
+        this.dialogList("xrefs for "+shex(loc), function(data) {
+          var addr = data.split('"')[3];
+          this.focus(fhex(addr));
+        }.bind(this), xrefs);
+        //p(xrefs);
+      }
+    }
+  }.bind(this));
 
   this.registerKeyHandler(KEY_ESC, function() {
     window.history.back();
@@ -206,7 +225,7 @@ Viewport.prototype.dialogDismiss = function(do_callback) {
   this.dom[0].style.opacity = 1;
 };
 
-Viewport.prototype.dialogList = function(test, callback, list) {
+Viewport.prototype.dialogList = function(text, callback, list) {
   this.dom[0].style.opacity = 0.6;
 
   this.dialogBox = document.createElement('div');
@@ -215,13 +234,18 @@ Viewport.prototype.dialogList = function(test, callback, list) {
   var dialogText = document.createElement('div');
   dialogText.innerHTML = text;
 
-  this.dialogInput = document.createElement('table');
+  this.dialogInput = document.createElement('div');
   var ih = "";
   for (var i = 0; i < list.length; i++) {
-
+    var td = document.createElement('div');
+    td.innerHTML = list[i];
+    td.className = 'xrefBox';
+    td.onclick = function(e) {
+      this.dialogDismiss(false);
+      callback(e.target.innerHTML);
+    }.bind(this);
+    this.dialogInput.appendChild(td);
   }
-
-  this.dialogInput.innerHTML = "";
 
   this.dialogBox.appendChild(dialogText);
   this.dialogBox.appendChild(this.dialogInput);
@@ -249,5 +273,4 @@ Viewport.prototype.dialog = function(text, callback, inputvalue) {
 
   this.dialogInput.focus();
 };
-
 

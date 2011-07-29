@@ -58,6 +58,7 @@ Implemented tags:
   * Cxxxx - call, doesn't interupt basic block
   * Xxxxx - xref, doesn't interupt basic block
   * R - return
+* scope -- address
 
 Considering tags:
 * func -- JSON object of function extents on first byte of function, ex "{0x3A30:0x50}"

@@ -1,4 +1,8 @@
 Auto scrollback on dialog popups is bad
 Implement IDA style cursor
-Add support for saving and loading
+Make saving and loading reasonable
+Focusing only works on the top of the function
+Write simulator
+Ghetto scrolling when you drag down
 
+DONE: Add support for saving and loading
