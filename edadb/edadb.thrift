@@ -48,5 +48,8 @@ service EDAdb {
   // this is the accessor used by tid
   // currently poorly imped
   map<i64, map<string, string>> getTagsInRange(1:i64 address_start, 2:i64 address_end),
+
+  void dumpToFile(1:string filename),
+  void readFromFile(1:string filename),
 }
 

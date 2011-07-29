@@ -97,6 +97,14 @@ class EDAdbHandler : virtual public EDAdbIf {
       }
     }
   }
+
+  void dumpToFile(const std::string& filename) {
+    Memory::Inst()->dumpToFile(filename);
+  }
+
+  void readFromFile(const std::string& filename) {
+    Memory::Inst()->readFromFile(filename);
+  }
 };
 
 int main(int argc, char** argv) {

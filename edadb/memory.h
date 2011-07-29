@@ -9,8 +9,19 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <fstream>
+#include <iostream>
 
 #include "edadb/byte.h"
+
+#include <boost/archive/tmpdir.hpp>
+
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
 
 using std::set;
 using std::map;
@@ -52,9 +63,23 @@ class Memory {
   void setTag(uint64_t addr, const string& tagname, const string& data);
   void getTags(TagsObject& _return, uint64_t addr) const;
 
+  void dumpToFile(const string& filename);
+  void readFromFile(const string& filename);
+
  protected:
   Memory();  // Memory is a singleton
  private:
+  friend class boost::serialization::access;
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version) {
+    ar & memory_;
+    ar & change_;
+    ar & memory_tags_;
+    ar & history_written_;
+    ar & history_read_;
+    ar & nullbyte_;
+  }
+
   map<uint64_t, Byte*> memory_;
   uint64_t change_;
 

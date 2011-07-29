@@ -129,5 +129,24 @@ Byte* Memory::get(uint64_t addr) const {
   }
 }
 
+void Memory::dumpToFile(const std::string& filename) {
+  printf("dumping to file %s...\n", filename.c_str());
+  std::ofstream ofs(filename.c_str(), std::ios::binary);
+  boost::archive::binary_oarchive oa(ofs);
+  oa << this;
+  printf("done\n");
+}
+
+void Memory::readFromFile(const std::string& filename) {
+  printf("reading from file %s...\n", filename.c_str());
+  std::ifstream ifs(filename.c_str(), std::ios::binary);
+  boost::archive::binary_iarchive ia(ifs);
+  Memory* replace = new Memory;
+  ia >> replace;
+  delete inst_;
+  inst_ = replace;
+  printf("done\n");
+}
+
 }  // namespace edadb
 

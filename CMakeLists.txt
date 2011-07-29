@@ -7,6 +7,7 @@ SET(EDADB_SRCS
 )
 INCLUDE_DIRECTORIES(./)
 INCLUDE_DIRECTORIES(~/devtools/thrift-0.6.1/lib/cpp/src)
+LINK_DIRECTORIES(/opt/local/lib)
 ADD_LIBRARY(edadb ${EDADB_SRCS})
 ADD_EXECUTABLE(edadb_server
 ./edadb/edadb.cc
@@ -14,7 +15,7 @@ ADD_EXECUTABLE(edadb_server
 ./edadb/gen-cpp/edadb_constants.cpp
 ./edadb/gen-cpp/edadb_types.cpp
 )
-TARGET_LINK_LIBRARIES(edadb_server edadb "thrift")
+TARGET_LINK_LIBRARIES(edadb_server edadb "thrift" "boost_serialization")
 
 #-----testing below this line-----
 SET(GTEST_DIR ~/devtools/gtest-1.6.0)
