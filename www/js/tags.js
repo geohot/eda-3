@@ -79,7 +79,7 @@ function parseLocation(ss) {
     var addr = ss;
   }
   var tags = db.tags(addr);
-  var ret = '<input type="hidden" value="'+shex(addr)+'" />';
+  var ret = '<input type="hidden" class="highlight_'+shex(addr)+'" value="'+shex(addr)+'" />';
   if (tags['name'] !== undefined) {
     ret += tags['name'];
   } else {

@@ -106,11 +106,13 @@ Viewport.prototype.setSelectedLine = function(addr) {
 
 Viewport.prototype.setSelectedLocation = function(ele) {
   if (this.selectedLocation !== null) {
-    $(this.selectedLocation).removeClass('location_selected');
+    //$(this.selectedLocation).removeClass('location_selected');
+    $('.'+this.selectedLocation.childNodes[0].className).parent().removeClass('location_selected');
   }
   this.selectedLocation = ele;
   if (ele !== null) {
-    $(this.selectedLocation).addClass('location_selected');
+    //$(this.selectedLocation).addClass('location_selected');
+    $('.'+this.selectedLocation.childNodes[0].className).parent().addClass('location_selected');
   }
   return false;
 };
@@ -128,8 +130,9 @@ Viewport.prototype.registerDefaultHandlers = function() {
   this.registerKeyHandler(KEY_SEMICOLON, function() {
     if (this.selectedLine !== null) {
       this.dialog("Enter comment", function(data) {
+        this.positions[this.focused] = [fnum(gbox.style.left), fnum(gbox.style.top)];
         db.setTag(this.selectedLine, 'comment', data);
-        this.g.render();
+        this.render();
       }.bind(this), db.tags(this.selectedLine)['comment']);
     }
   }.bind(this));
@@ -138,8 +141,9 @@ Viewport.prototype.registerDefaultHandlers = function() {
     if (this.selectedLocation !== null) {
       var loc = fhex(this.selectedLocation.childNodes[0].value);
       this.dialog("Rename 0x"+shex(loc), function(data) {
+        this.positions[this.focused] = [fnum(gbox.style.left), fnum(gbox.style.top)];
         db.setTag(loc, 'name', data);
-        this.g.render();
+        this.render();
       }.bind(this), db.tags(loc)['name']);
     }
   }.bind(this));
@@ -155,7 +159,9 @@ Viewport.prototype.registerDefaultHandlers = function() {
       }
       if (xrefs.length > 0) {
         this.dialogList("xrefs for "+shex(loc), function(data) {
-          var addr = data.split('"')[3];
+          var tmp = document.createElement('span');
+          tmp.innerHTML = data;
+          var addr = tmp.childNodes[0].value
           this.focus(fhex(addr));
         }.bind(this), xrefs);
         //p(xrefs);
@@ -179,7 +185,7 @@ Viewport.prototype.registerDefaultHandlers = function() {
     return this.setSelectedLine(fnum(ele.id));
   }.bind(this));
 
-  this.registerClickHandler('i_location', function(ele) {
+  this.registerClickHandler('i_location i_corelocation', function(ele) {
     return this.setSelectedLocation(ele);
   }.bind(this));
 
@@ -201,12 +207,18 @@ Viewport.prototype.registerKeyHandler = function(num, fxn) {
   this.keyBindings[num] = fxn;
 };
 
-Viewport.prototype.registerClickHandler = function(classname, fxn) {
-  this.clickBindings[classname] = fxn;
+Viewport.prototype.registerClickHandler = function(classnames, fxn) {
+  classes = classnames.split(' ');
+  for (var i=0;i < classes.length; i++) {
+    this.clickBindings[classes[i]] = fxn;
+  }
 };
 
-Viewport.prototype.registerDblClickHandler = function(classname, fxn) {
-  this.dblClickBindings[classname] = fxn;
+Viewport.prototype.registerDblClickHandler = function(classnames, fxn) {
+  classes = classnames.split(' ');
+  for (var i=0;i < classes.length; i++) {
+    this.dblClickBindings[classes[i]] = fxn;
+  }
 };
 
 

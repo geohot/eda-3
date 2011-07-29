@@ -42,6 +42,9 @@ var db = {
     return this.data_cache[addr];
   },
   setTag: function(addr, name, data) {
+    if (this.tags_cache[addr] === undefined) {
+      this.tags_cache[addr] = {};
+    }
     if (data != "") {
       this.tags_cache[addr][name] = data;
     } else {

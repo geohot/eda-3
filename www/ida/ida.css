@@ -21,8 +21,16 @@
   background-color: #FFE0E0;
 }
 
-.location_selected {
+.i_location.location_selected {
   background-color: orange;
+}
+
+.i_corelocation.location_selected {
+  background-color: blue;
+}
+
+.i_deref.location_selected {
+  background-color: blue;
 }
 
 .comment {

@@ -12,10 +12,21 @@ $(document).ready(function() {
   view = new IDAViewport($('#viewporthtmlwrapper'));
   view.registerDefaultHandlers();
   //view.focus(0x50DC);
-  view.focus(0x80108000);
+  if (window.location.hash == "") {
+    view.focus(0x80108000);
+  } else {
+    view.focus(fhex(window.location.hash.substr(1)));
+  }
+});
+
+function IDAViewport(wrapper) {
+  Viewport.call(this, wrapper);
 
   var basex, basey;
   var isDown = false;
+
+  this.positions = {};
+  this.focused = null;
 
   window.onmousedown = function(e) {
     isDown = true;
@@ -38,20 +49,26 @@ $(document).ready(function() {
     gbox.style.left = e.wheelDeltaX + fnum(gbox.style.left);
     gbox.style.top = e.wheelDeltaY + fnum(gbox.style.top);
   };
-});
-
-function IDAViewport(wrapper) {
-  Viewport.call(this, wrapper);
 }
 
 IDAViewport.prototype = new Viewport();
 IDAViewport.prototype.constructor = IDAViewport;
 IDAViewport.prototype.parent = Viewport;
 
+
+window.onhashchange = function() {
+  p('hash change');
+  view.focus(fhex(window.location.hash.substr(1)));
+}
+
 IDAViewport.prototype.focus = function(addr_inner, nopush) {
   var scope = db.tags(addr_inner)['scope'];
   if (scope === undefined) return false;
   var addr = fhex(scope);
+
+  if (this.focused !== null) {
+    this.positions[this.focused] = [fnum(gbox.style.left), fnum(gbox.style.top)];
+  }
 
   if (addr == this.focused) {
     this.setSelectedLine(addr_inner);
@@ -60,8 +77,10 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
 
   var functiontag = db.tags(addr)['function'];
   if (functiontag === undefined) return false;
+
   if (nopush !== true) {
-    window.history.pushState(addr);
+    window.location.hash = shex(addr);
+    //window.history.pushState(addr);
   }
 
   this.focused = addr;
@@ -280,8 +299,16 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
       this.g.addEdge(from, to);
     }
   }*/
-  this.g.render();
+  this.render();
   this.setSelectedLine(addr_inner);
+};
+
+IDAViewport.prototype.render = function() {
+  this.g.render();
+  if (this.positions[this.focused] !== undefined) {
+    gbox.style.left = this.positions[this.focused][0];
+    gbox.style.top = this.positions[this.focused][1];
+  }
 };
 
 IDAViewport.prototype.isAddressInFunction = function(addr) {
