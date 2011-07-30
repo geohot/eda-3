@@ -71,6 +71,7 @@ function rebuildParser() {
     obj['letters'] = letters;
     obj['k'] = k;
     obj['bytecount'] = (k.length)/8;
+    obj['mask_bytecount'] = (obj['bytecount']>4)?4:obj['bytecount']; // hack hack hack
     obj['out'] = parsed[sk][0];  // change to support the new format
     parsed_built.push(obj);
   }
@@ -197,7 +198,7 @@ parseInstruction = function(laddr, meta_rawdata) {
   var meta_matched = false;
   for (var meta_i = 0; meta_i < parsed_built.length; meta_i++) {
     var meta_obj = parsed_built[meta_i];
-    var meta_inst = immed(meta_obj['bytecount'], endian, meta_rawdata, 0);
+    var meta_inst = immed(meta_obj['mask_bytecount'], endian, meta_rawdata, 0);
     if ( (meta_inst & meta_obj['mask']) == meta_obj['match']) {
       meta_matched = true;
       break;
@@ -212,7 +213,11 @@ parseInstruction = function(laddr, meta_rawdata) {
   for (var meta_i = 0; meta_i < meta_obj['k'].length; meta_i++) {
     var meta_c = meta_obj['k'].substr(meta_i, 1);
     if (meta_obj['letters'].indexOf(meta_c) != -1) {
-      var meta_bit = (meta_inst >> ((meta_obj['k'].length-1)-meta_i)) & 1;
+      var meta_byte = (meta_i>>3);
+      if (endian === 'little') meta_byte = ((meta_obj['k'].length>>3)-1)-meta_byte;
+      var meta_bito = 7-(meta_i&7);
+      var meta_bit = (meta_rawdata[meta_byte] >> meta_bito) & 1;
+      //var meta_bit = (meta_inst >> ((meta_obj['k'].length-1)-meta_i)) & 1;
       eval(meta_c+' <<= 1');
       eval(meta_c+' |= '+meta_bit);
     }

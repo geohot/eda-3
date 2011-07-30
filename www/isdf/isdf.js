@@ -8,7 +8,7 @@ $(document).ready(function() {
   registerObjectEditor('parsed', localSaveCallbackParsed);
   registerObjectEditor('env', localSaveCallback);
 
-  setiset('arm');
+  setiset('x86');
   //runtest(false);
 });
 
@@ -135,6 +135,7 @@ function setendian(new_endian) {
 
 function localSaveCallback(key, value, name) {
   //p(name+': '+key+' = '+value);
+  if (localStorage[iset+'_'+name] === undefined) localStorage[iset+'_'+name] = '{}';
   var locale = JSON.parse(localStorage[iset+'_'+name]);
   if (locale == null) {
     locale = {};
@@ -152,12 +153,13 @@ function localSaveCallback(key, value, name) {
 
 function localSaveCallbackParsed(key, value, name, index) {
   //p(name+': '+key+' = '+value);
+  if (localStorage[iset+'_'+name] === undefined) localStorage[iset+'_'+name] = '{}';
   var locale = JSON.parse(localStorage[iset+'_'+name]);
   if (locale == null) {
     locale = {};
   }
   if (key !== null) {
-    if (index === -1) {
+    if (index === -1 && locale[key] === undefined) {
       locale[key] = [];
     } else {
       locale[key][index] = value;

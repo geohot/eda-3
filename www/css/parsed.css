@@ -1,6 +1,6 @@
 .i_tab {
   width: 60px;
-  float: left;
+  display: inline-block;
 }
 
 .i_opcode {

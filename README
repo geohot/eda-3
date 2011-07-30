@@ -4,20 +4,26 @@ edadb/ -- the backend storage system for raw ram
   byte.* -- the Byte class
   memory.* -- the Memory class
 www/ -- the directory root(ish) of apache
+  css/ -- base css files
   edadb/ -- PHP endpoints to access the EDAdb
+  flat/ -- flat viewer
   ida/ -- nice graph viewer webapp
   isdf/ -- instruction set entry system
   js/ -- common javascript files
     base.js -- basic functions that should be a part of core javascript(not EDA specific)
+    db.js -- the better client side edadb, actually classish
     dbmanager.js -- the client side version of the edadb
     jquery-1.6.1.min.js -- jquery
   static/ -- static analyzer
+  viewtest/ -- testing for the new view system
   xvi/ -- xvi32 hex editor webapp
 
 Requirements:
-* PHP
+* PHP and a webserver
 * Thrift
 * gtest for C++ testing
+* Boost for db saving and loading
+* graphviz(dot) for graph layout
 
 Build instructions:
 * create a build dir outside the eda-3 dir and cmake eda-3/edadb
@@ -26,7 +32,8 @@ Build instructions:
 * visit http://yourcomp/eda/ and pick a tool :)
 
 Philosophy:
-Functional first, than fast
+Functional first, then fast(don't prematurely optimise)
+Not invented here is an antipattern, use third party code
 It only supports Chrome, because Chrome is the best browser ever
 EDA solves the halting problem
 Registers are just memory, ex 0xEDA00000 = R0, 0xEDA00004 = R1, ...
@@ -58,10 +65,10 @@ Implemented tags:
   * Cxxxx - call, doesn't interupt basic block
   * Xxxxx - xref, doesn't interupt basic block
   * R - return
-* scope -- address
+* scope -- start address of function this is in
+* function -- list of addresses in function 3A30:50 is format
 
 Considering tags:
-* func -- JSON object of function extents on first byte of function, ex "{0x3A30:0x50}"
 * compiled -- the javascript code that actually runs the instruction, can call instruction set locals
 * mmio -- javascript to run when this is read or written
 

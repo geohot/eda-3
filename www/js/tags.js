@@ -53,8 +53,7 @@ function displayParsed(parsed) {
 
 function parseImmed(immed) {
   var i = fnum(immed);
-  //if (i < 0) i = ~i;
-  if (i < 10) return shex(i);
+  if (i >= 0 && i < 10) return shex(i);
   else return '0x'+shex(i);
 }
 
