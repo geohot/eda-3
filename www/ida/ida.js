@@ -7,6 +7,7 @@ require('js/viewport.js');
 var view;
 
 var gbox;
+var miniscale;
 
 $(document).ready(function() {
   view = new IDAViewport($('#viewporthtmlwrapper'));
@@ -28,37 +29,77 @@ function IDAViewport(wrapper) {
   this.positions = {};
   this.focused = null;
 
+  this.minimap = $('#minimap')[0];
+  this.miniframe = $('#miniframe')[0];
+  this.miniframectx = this.miniframe.getContext("2d");
+
   window.onmousedown = function(e) {
     isDown = true;
     basex = e.x - fnum(gbox.style.left);
     basey = e.y - fnum(gbox.style.top);
-  };
+    return false;
+  }.bind(this);
 
   window.onmouseup = function(e) {
     isDown = false;
   };
 
   window.onmousemove = function(e) {
-    if (isDown) {
-      gbox.style.left = e.x-basex;
-      gbox.style.top = e.y-basey;
+    if (isDown && !minidown) {
+      this.scrollTo(e.x-basex, e.y-basey);
     }
-  };
+  }.bind(this);
 
   window.onmousewheel = function(e) {
-    gbox.style.left = e.wheelDeltaX + fnum(gbox.style.left);
-    gbox.style.top = e.wheelDeltaY + fnum(gbox.style.top);
-  };
+    this.scrollTo(e.wheelDeltaX + fnum(gbox.style.left),
+                  e.wheelDeltaY + fnum(gbox.style.top));
+  }.bind(this);
+
+  var minidown = false;
+  this.minimap.onmousedown = function(e) {
+    //p(e);
+    var x = (e.offsetX - 5)*miniscale*-1;
+    var y = (e.offsetY - 5)*miniscale*-1;
+    this.scrollTo(x+(window.innerWidth/2), y+(window.innerHeight/2));
+    minidown = true;
+  }.bind(this);
+
+  this.minimap.onmousemove = function(e) {
+    if (minidown == true) {
+      var x = (e.offsetX - 5)*miniscale*-1;
+      var y = (e.offsetY - 5)*miniscale*-1;
+      this.scrollTo(x+(window.innerWidth/2), y+(window.innerHeight/2));
+    }
+  }.bind(this);
+
+  this.minimap.onmouseup = function(e) { minidown = false; };
 }
 
 IDAViewport.prototype = new Viewport();
 IDAViewport.prototype.constructor = IDAViewport;
 IDAViewport.prototype.parent = Viewport;
 
-
 window.onhashchange = function() {
   p('hash change');
   view.focus(fhex(window.location.hash.substr(1)));
+}
+
+IDAViewport.prototype.scrollTo = function(x, y) {
+  var mctx = this.miniframectx;
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  var t = y*-1;
+  var l = x*-1;
+  this.miniframe.width = this.miniframe.width;
+  mctx.beginPath()
+  mctx.moveTo(l/miniscale, t/miniscale)
+  mctx.lineTo((l+w)/miniscale, t/miniscale);
+  mctx.lineTo((l+w)/miniscale, (t+h)/miniscale);
+  mctx.lineTo(l/miniscale, (t+h)/miniscale);
+  mctx.lineTo(l/miniscale, t/miniscale);
+  mctx.stroke();
+  gbox.style.left = x;
+  gbox.style.top = y;
 }
 
 IDAViewport.prototype.focus = function(addr_inner, nopush) {
@@ -72,6 +113,22 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
 
   if (addr == this.focused) {
     this.setSelectedLine(addr_inner);
+    var d = $('#'+addr_inner)[0];
+    var x=0, y=0;
+    x += d.offsetWidth/2;
+    y += d.offsetHeight/2;
+    while (d != gbox) {
+      x += d.offsetLeft;
+      y += d.offsetTop;
+      d = d.parentNode;
+    }
+    x -= window.innerWidth/2;
+    y -= window.innerHeight/2;
+
+    // hack for first focus
+    if (addr != addr_inner) {
+      this.scrollTo(x*-1,y*-1);
+    }
     return false;
   }
 
@@ -306,8 +363,9 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
 IDAViewport.prototype.render = function() {
   this.g.render();
   if (this.positions[this.focused] !== undefined) {
-    gbox.style.left = this.positions[this.focused][0];
-    gbox.style.top = this.positions[this.focused][1];
+    this.scrollTo(this.positions[this.focused][0], this.positions[this.focused][1]);
+  } else {
+    this.scrollTo(50,50);
   }
 };
 
@@ -431,11 +489,12 @@ Graph.prototype.render = function() {
   this.debugPrint();
   this.placeBoxes();*/
 
-  p('rendering...');
+  //p('rendering...');
 
   // render vertices here instead
   for (addr in this.vertices) {
     if (this.vertices[addr]['len'] !== undefined) {
+      p('rendering '+shex(fnum(addr))+'-'+shex(fnum(addr)+this.vertices[addr]['len']));
       this.vertices[addr]['rendered'] = this.renderVertex(fnum(addr));
     }
   }
@@ -452,7 +511,6 @@ Graph.prototype.render = function() {
     gbox.appendChild(r);
     var width = (r.offsetWidth * 1.0) / 72.;
     var height = (r.offsetHeight * 1.0) / 72.;
-
     send += 'N' + shex(addr) + ' [width="'+width+'", height="'+height+'", shape="box"];'+"\n";
   }
   for (var i = 0; i < this.edges.length; i++) {
@@ -492,6 +550,25 @@ Graph.prototype.render = function() {
   gbox.style.left = "50";
   gbox.style.top = "50";
 
+  var minimap = $('#minimap')[0];
+  var xscale = fnum(gdata[2])/100;
+  var yscale = fnum(gdata[3])/300;
+  miniscale = (xscale>yscale)?xscale:yscale;
+  minimap.style.width = fnum(gdata[2])/miniscale+10;
+  minimap.style.height = fnum(gdata[3])/miniscale+10;
+  minimap.style.display = "";
+
+  var miniframe = $('#miniframe')[0];
+  miniframe.width = fnum(gdata[2])/miniscale;
+  miniframe.height = fnum(gdata[3])/miniscale;
+
+  var minicanvas = $('#minicanvas')[0];
+  minicanvas.width = fnum(gdata[2])/miniscale;
+  minicanvas.width = minicanvas.width;
+  minicanvas.height = fnum(gdata[3])/miniscale;
+  minimap.appendChild(minicanvas);
+  var mctx = minicanvas.getContext("2d");
+
   for (i = 3;true;i++) {
     if (resp[i].indexOf('->') != -1) break;
     if (resp[i].indexOf('}') != -1) break;
@@ -501,9 +578,21 @@ Graph.prototype.render = function() {
 
     var r = this.vertices[fhex(addr)].rendered;
 
+    var left = fnum(pos[0]) - (r.offsetWidth/2);
+    var top = fnum(gdata[3]) - (fnum(pos[1]) + (r.offsetHeight/2));
+
     r.style.position = "absolute";
-    r.style.left = fnum(pos[0]) - (r.offsetWidth/2);
-    r.style.top = fnum(gdata[3]) - (fnum(pos[1]) + (r.offsetHeight/2));
+    r.style.left = left;
+    r.style.top = top;
+
+    var minir = document.createElement('div');
+    mctx.beginPath()
+    mctx.moveTo(left/miniscale, top/miniscale)
+    mctx.lineTo((left+r.offsetWidth)/miniscale, top/miniscale);
+    mctx.lineTo((left+r.offsetWidth)/miniscale, (top+r.offsetHeight)/miniscale);
+    mctx.lineTo(left/miniscale, (top+r.offsetHeight)/miniscale);
+    mctx.lineTo(left/miniscale, top/miniscale);
+    mctx.stroke();
     //r.style.opacity = ".3";
     //r.style.visibility = "hidden";
   }
@@ -551,6 +640,19 @@ Graph.prototype.render = function() {
     ctx.lineWidth = 1;
     ctx.fillStyle = color;
     ctx.fill();
+
+    // draw in minimap
+    mctx.beginPath();
+    mctx.moveTo(pos[1].x/miniscale, pos[1].y/miniscale);
+    for (var j=2; j<pos.length; j+=3) {
+      mctx.bezierCurveTo(pos[j].x/miniscale, pos[j].y/miniscale,
+        pos[j+1].x/miniscale, pos[j+1].y/miniscale,
+        pos[j+2].x/miniscale, pos[j+2].y/miniscale);
+    }
+    mctx.lineTo(pos[0].x/miniscale, pos[0].y/miniscale);
+    mctx.lineWidth = 1;
+    mctx.strokeStyle = color;
+    mctx.stroke();
 
     i++;
   }

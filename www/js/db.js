@@ -9,6 +9,7 @@ var db = {
   data_cache: {},
   tags_cache: {},
   precache: function(addr, len) {
+    p('precaching: '+shex(addr)+' - '+shex(addr+len));
     this.precacheData(addr, len);
     this.precacheTags(addr, len);
   },
@@ -36,9 +37,12 @@ var db = {
         return this.data_cache[saddr_str].subarray(offset, offset+len);
       }
     }
-    // not in cache
-    this.precacheData(addr, len);
-    p("cache miss ");
+    // not in cache, add some prefetching
+    this.precacheData(addr-0x100, 0x100);
+    this.precacheData(addr, len+0x100);
+    //p("cache miss");
+    p("cache miss "+shex(addr));
+    //console.trace();
     return this.data_cache[addr];
   },
   setTag: function(addr, name, data) {

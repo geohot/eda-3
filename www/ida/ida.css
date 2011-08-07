@@ -12,6 +12,32 @@
   background-color: white;
 }
 
+#minicanvas {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+#miniframe {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+#minimap {
+  z-index: 2;
+  position: relative;
+  display: none;
+  background-color: white;
+  border: solid;
+  border-color: black;
+  border-width: 1px;
+  padding: 5px;
+  margin: 5px;
+  display: inline-block;
+  float: right;
+}
+
 .line {
   font: 12px Courier New;
   display: block;
@@ -27,11 +53,11 @@
 }
 
 .i_corelocation.location_selected {
-  background-color: blue;
+  background-color: thistle;
 }
 
 .i_deref.location_selected {
-  background-color: blue;
+  background-color: violet;
 }
 
 .comment {
