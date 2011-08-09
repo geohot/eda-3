@@ -122,12 +122,20 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
       y += d.offsetTop;
       d = d.parentNode;
     }
-    x -= window.innerWidth/2;
-    y -= window.innerHeight/2;
 
-    // hack for first focus
-    if (addr != addr_inner) {
-      this.scrollTo(x*-1,y*-1);
+    var basex = 0 - fnum(gbox.style.left);
+    var basey = 0 - fnum(gbox.style.top);
+    var basew = window.innerWidth;
+    var baseh = window.innerHeight;
+
+    if ( (x < basex) || (y < basey) || (x > (basex+basew)) || (y > (basey+baseh)) ) {
+      p('not in window '+basex+' '+basey+' '+(basex+basew)+' '+(basey+baseh));
+      p('yo '+x+' '+y);
+      x *= -1;
+      y *= -1;
+      x += window.innerWidth/2;
+      y += window.innerHeight/2;
+      this.scrollTo(x,y);
     }
     return false;
   }

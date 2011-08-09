@@ -58,6 +58,7 @@ var db = {
   },
   tags: function(addr) {
     if (this.tags_cache[addr] === undefined) {
+      p("tag cache miss "+shex(addr));
       this.tags_cache[addr] = getTags(addr);
       return this.tags_cache[addr];
     }

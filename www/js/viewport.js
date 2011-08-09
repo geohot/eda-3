@@ -155,7 +155,15 @@ Viewport.prototype.registerDefaultHandlers = function() {
     if (flow !== undefined) {
       var xrefs = flow.filter(function(x) { if(x.substr(0,1)=='X') return true; });
       for (var i=0;i<xrefs.length;i++) {
-        xrefs[i] = displayParsed('\\l{'+fhex(xrefs[i].substr(1))+'}');
+        var addr = fhex(xrefs[i].substr(1));
+        var scope = fhex(db.tags(addr)['scope']);
+        var s = '\\l{'+addr+'}';
+        if (scope !== undefined) {
+          s += ' in \\l{'+scope+'}';
+        }
+        xrefs[i] = displayParsed(s);
+
+        //xrefs[i] = displayParsed('\\l{'+fhex(xrefs[i].substr(1))+'}');
       }
       if (xrefs.length > 0) {
         this.dialogList("xrefs for "+shex(loc), function(data) {
