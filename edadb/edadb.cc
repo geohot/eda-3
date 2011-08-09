@@ -105,6 +105,10 @@ class EDAdbHandler : virtual public EDAdbIf {
   void readFromFile(const std::string& filename) {
     Memory::Inst()->readFromFile(filename);
   }
+
+  void searchTags(std::set<int64_t>& _return, const std::string& tagname, const std::string& data) {
+    Memory::Inst()->searchTags((std::set<uint64_t>&)_return, tagname, data);
+  }
 };
 
 int main(int argc, char** argv) {

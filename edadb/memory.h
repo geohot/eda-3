@@ -27,6 +27,7 @@ using std::set;
 using std::map;
 using std::string;
 using std::vector;
+using std::pair;
 
 namespace edadb {
 
@@ -63,6 +64,8 @@ class Memory {
   void setTag(uint64_t addr, const string& tagname, const string& data);
   void getTags(TagsObject& _return, uint64_t addr) const;
 
+  void searchTags(set<uint64_t>& addr, const string& tagname, const string& data);
+
   void dumpToFile(const string& filename);
   void readFromFile(const string& filename);
 
@@ -78,6 +81,7 @@ class Memory {
     ar & history_written_;
     ar & history_read_;
     ar & nullbyte_;
+    ar & memory_reverse_tags_;
   }
 
   map<uint64_t, Byte*> memory_;
@@ -85,6 +89,7 @@ class Memory {
 
 // storage for the memory metadata
   map<uint64_t, TagsObject> memory_tags_;
+  map<pair<string, string>, set<uint64_t> > memory_reverse_tags_;
 
 // this tracks all the changelists
   vector<ExtentsMap> history_written_;

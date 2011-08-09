@@ -110,12 +110,23 @@ void Memory::setTag(uint64_t addr, const string& tagname, const string& data) {
     TagsObject::iterator titer = iter->second.insert(make_pair(tagname, data)).first;
     titer->second = data;
   }
+
+  set<uint64_t> d;
+  map<pair<string, string>, set<uint64_t> >::iterator iterr = memory_reverse_tags_.insert(make_pair(make_pair(tagname, data), d)).first;
+  iterr->second.insert(addr);
 }
 
 void Memory::getTags(TagsObject& _return, uint64_t addr) const {
   map<uint64_t, TagsObject>::const_iterator iter = memory_tags_.find(addr);
   if (iter != memory_tags_.end()) {
     _return = iter->second;
+  }
+}
+
+void Memory::searchTags(set<uint64_t>& addr, const string& tagname, const string& data) {
+  map<pair<string, string>, set<uint64_t> >::iterator iter = memory_reverse_tags_.find(make_pair(tagname, data));
+  if (iter != memory_reverse_tags_.end()) {
+    addr = iter->second;
   }
 }
 

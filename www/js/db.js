@@ -84,6 +84,17 @@ var db = {
     // negative numbers suck
     if(ret < 0) ret = 0x100000000+ret;
     return ret;
+  },
+  search: function(name, data) {
+    var req = new XMLHttpRequest();
+    req.open('GET', '/eda/edadb/searchtags.php?tagname='+name+'&data='+data, false);
+    req.send(null);
+    var json = jQuery.parseJSON(req.response);
+    var ret = [];
+    for (a in json) {
+      ret.push(fnum(a));
+    }
+    return ret;
   }
 };
 
