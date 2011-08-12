@@ -245,30 +245,37 @@ function uploadMachOFile(ab) {
         p('    '+sectname+' '+segname+' @ '+shex(section[8])+' '+shex(section[9])+' relocs '+shex(reloff)+' '+nreloc+' flags '+shex(flags));
 
         if ((flags&0xF) == S_SYMBOL_STUBS) {
-          symbol_stubs = section[8];
-          for (var i = start; i < start+len; i+=0xC) {
+          p('      adding '+(len/0x4)+' symbol offsets SYMBOL_STUBS');
+          symbol_stubs = start;
+          //for (var i = start; i < start+len; i+=0xC) {
+          for (var i = start; i < start+len; i+=0x4) {
+            symbol_offsets.push(i);
+          }
+        }
+
+        // symbol stubs point here
+        if ((flags&0xF) == S_LAZY_SYMBOL_POINTERS) {
+          p('      adding '+(len/0x4)+' symbol offsets LAZY_SYMBOL_POINTERS');
+          la_symbol_ptrs = section[8];
+          for (var i = start; i < start+len; i+=4) {
             symbol_offsets.push(i);
           }
         }
 
         if ((flags&0xF) == S_NON_LAZY_SYMBOL_POINTERS) {
+          p('      adding '+(len/0xC)+' symbol offsets NON_LAZY_SYMBOL_POINTERS');
           nl_symbol_ptrs = section[8];
           for (var i = start; i < start+len; i+=4) {
             symbol_offsets.push(i);
           }
         }
 
-        if ((flags&0xF) == S_LAZY_SYMBOL_POINTERS) {
-          la_symbol_ptrs = section[8];
-          for (var i = start; i < start+len; i+=4) {
-            symbol_offsets.push(i);
-          }
-        }
         offset_sect += 0x44;
       }
       rawcommit(vmaddr, extractRegion(ab, fileoff, filesize));
     }
     if (load_command[0] == LC_SYMTAB) {
+      p('running LC_SYMTAB');
       var REFERENCE_FLAG_UNDEFINED_NON_LAZY = 0;
       var REFERENCE_FLAG_UNDEFINED_LAZY = 1;
       var REFERENCE_FLAG_DEFINED = 2;
@@ -298,21 +305,34 @@ function uploadMachOFile(ab) {
       }
     }
     if (load_command[0] == LC_DYSYMTAB) {
+      var tags = {};
+      //p('running LC_DYSYMTAB');
       var dysymtab_command = new Uint32Array(ab, offset, load_command[1]);
       //for(var i=0;i<20;i++) p(shex(dysymtab_command[i]));
-      //p('  local symbols '+shex(dysymtab_command[2])+' len '+dysymtab_command[3]);
-      //p('  defined external symbols '+shex(dysymtab_command[4])+' len '+dysymtab_command[5]);
-      //p('  undefined symbols '+shex(dysymtab_command[6])+' len '+dysymtab_command[7]);
+      p('  local symbols '+shex(dysymtab_command[2])+' len '+dysymtab_command[3]);
+      p('  defined external symbols '+shex(dysymtab_command[4])+' len '+dysymtab_command[5]);
+      p('  undefined symbols '+shex(dysymtab_command[6])+' len '+dysymtab_command[7]);
       var indirectsymoff = new Uint32Array(ab, dysymtab_command[14], dysymtab_command[15]);
-      p(symbols);
-      p(symbol_offsets);
+      //p(symbols);
+      //p(symbol_offsets);
       for(var indirectsym = 0; indirectsym < dysymtab_command[15]; indirectsym++) {
         var symoff = indirectsymoff[indirectsym];
-        p(shex(symoff)+' '+symbols[symoff]+' @ '+symbol_offsets[indirectsym]);
-        if(symoff != 0x80000000) {
-          db.setTag(symbol_offsets[indirectsym], 'name', symbols[symoff]);
+        if (symbol_offsets[indirectsym] !== undefined) {
+          p(shex(symoff)+' '+symbols[symoff]+' @ '+shex(symbol_offsets[indirectsym]));
+          if(symoff != 0x80000000) {
+            if (tags[symbol_offsets[indirectsym]] === undefined) {
+              tags[symbol_offsets[indirectsym]] = {'name': symbols[symoff]};
+            } else {
+              p('already set '+shex(symbol_offsets[indirectsym]));
+            }
+            //db.setTag(symbol_offsets[indirectsym], 'name', symbols[symoff]);
+          }
+        } else {
+          p(shex(symoff)+' '+symbols[symoff]+' NO ADDR!!');
         }
       }
+      p(tags);
+      setMultiTagAsync(JSON.stringify(tags), function() { p('tags uploaded') });
     }
     if (load_command[0] == LC_LOAD_DYLIB) {
       var dylib_command = new Uint32Array(ab, offset, load_command[1]);

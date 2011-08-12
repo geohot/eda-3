@@ -33,6 +33,8 @@ var starttime;
 var tagsList = {};
 var calls = [];
 
+var iset;
+
 function go() {
   rangestart = fhex($('#rangestart')[0].value);
   rangelength = fhex($('#rangelength')[0].value);
@@ -52,7 +54,7 @@ function go() {
   going = true;
   starttime = (new Date).getTime();
   //re(staticstart, true);
-  calls.push([staticstart, 0]);
+  calls.push([staticstart, 0, iset]);
   setTimeout(analyze_function, 0);
 }
 
@@ -113,6 +115,11 @@ function analyze_function() {
   var call = calls.pop();
   var faddr = call[0];
   var depth = call[1];
+  if (call[2] !== iset) {
+    iset = call[2];
+    rebuildParser();
+    l('using iset: '+iset);
+  }
 
   if (seen[faddr] !== true) {
     l('s '+shex(faddr), depth);
@@ -157,13 +164,21 @@ function analyze_function() {
           var naddr = fhex(flow[i].substr(1));
           stack.pop();
           stack.push(naddr);
-        } else if(flow[i].substr(0,1) == 'C') {
+        } else if(flow[i].substr(0,1) == 'C' || flow[i].substr(0,1) == 'I') {
           var fstart = fhex(flow[i].substr(1));
           l('c '+shex(fstart)+' @ '+shex(addr), depth);
           // start function definer
           // add xref
           tagsList[fstart] = mergeObjects(tagsList[fstart], {"flow": '[\'X'+shex(addr)+'\']'});
-          calls.push([fstart, depth+1]);
+          if (flow[i].substr(0,1) == 'I') {
+            if (iset === 'thumb') {
+              calls.push([fstart, depth+1, 'arm']);
+            } else {
+              calls.push([fstart, depth+1, 'thumb']);
+            }
+          } else {
+            calls.push([fstart, depth+1, iset]);
+          }
         } else if(flow[i].substr(0,1) == 'O') {
           var fland = fhex(flow[i].substr(1));
           // L is a landing zone

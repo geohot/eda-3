@@ -516,10 +516,12 @@ Graph.prototype.render = function() {
   for (saddr in this.vertices) {
     var addr = fnum(saddr);
     var r = this.vertices[addr].rendered;
-    gbox.appendChild(r);
-    var width = (r.offsetWidth * 1.0) / 72.;
-    var height = (r.offsetHeight * 1.0) / 72.;
-    send += 'N' + shex(addr) + ' [width="'+width+'", height="'+height+'", shape="box"];'+"\n";
+    if (r !== undefined) {
+      gbox.appendChild(r);
+      var width = (r.offsetWidth * 1.0) / 72.;
+      var height = (r.offsetHeight * 1.0) / 72.;
+      send += 'N' + shex(addr) + ' [width="'+width+'", height="'+height+'", shape="box"];'+"\n";
+    }
   }
   for (var i = 0; i < this.edges.length; i++) {
     send += 'N' + shex(this.edges[i]['from']) + ' -> N' + shex(this.edges[i]['to']) + ' [color='+this.edges[i]['color']+', headport=n, tailport=s]'+";\n";
@@ -586,23 +588,25 @@ Graph.prototype.render = function() {
 
     var r = this.vertices[fhex(addr)].rendered;
 
-    var left = fnum(pos[0]) - (r.offsetWidth/2);
-    var top = fnum(gdata[3]) - (fnum(pos[1]) + (r.offsetHeight/2));
+    if (r !== undefined) {
+      var left = fnum(pos[0]) - (r.offsetWidth/2);
+      var top = fnum(gdata[3]) - (fnum(pos[1]) + (r.offsetHeight/2));
 
-    r.style.position = "absolute";
-    r.style.left = left;
-    r.style.top = top;
+      r.style.position = "absolute";
+      r.style.left = left;
+      r.style.top = top;
 
-    var minir = document.createElement('div');
-    mctx.beginPath()
-    mctx.moveTo(left/miniscale, top/miniscale)
-    mctx.lineTo((left+r.offsetWidth)/miniscale, top/miniscale);
-    mctx.lineTo((left+r.offsetWidth)/miniscale, (top+r.offsetHeight)/miniscale);
-    mctx.lineTo(left/miniscale, (top+r.offsetHeight)/miniscale);
-    mctx.lineTo(left/miniscale, top/miniscale);
-    mctx.stroke();
-    //r.style.opacity = ".3";
-    //r.style.visibility = "hidden";
+      var minir = document.createElement('div');
+      mctx.beginPath()
+      mctx.moveTo(left/miniscale, top/miniscale)
+      mctx.lineTo((left+r.offsetWidth)/miniscale, top/miniscale);
+      mctx.lineTo((left+r.offsetWidth)/miniscale, (top+r.offsetHeight)/miniscale);
+      mctx.lineTo(left/miniscale, (top+r.offsetHeight)/miniscale);
+      mctx.lineTo(left/miniscale, top/miniscale);
+      mctx.stroke();
+      //r.style.opacity = ".3";
+      //r.style.visibility = "hidden";
+    }
   }
 
   var canvas = document.createElement("canvas");

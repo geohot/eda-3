@@ -7,5 +7,5 @@ $transport->open();
 $addrs = $client->searchTags($_GET['tagname'], $_GET['data']);
 $transport->close();
 
-echo json_encode($addrs);
+echo(json_encode($addrs));
 

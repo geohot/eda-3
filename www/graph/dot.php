@@ -31,7 +31,10 @@ function submit() {
 
 file_put_contents('/tmp/in.dot', $data);
 
-system('/opt/local/bin/dot /tmp/in.dot');
-#system('dot /tmp/in.dot -Tgif > /tmp/out.gif');
-
+if (file_exists('/opt/local/bin/dot')) {
+  system('/opt/local/bin/dot /tmp/in.dot');
+} else {
+  system('dot /tmp/in.dot');
+  #system('dot /tmp/in.dot -Tgif > /tmp/out.gif');
+}
 
