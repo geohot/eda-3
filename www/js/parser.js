@@ -254,11 +254,12 @@ runInstruction = function(laddr, meta_rawdata) {
   meta_obj['run'].forEach(function(run) {
     id = [];
     var meta_cond = undefined;
-    try {
+    // should probably be a try catch
+    if (run[1].indexOf('id') === -1) {
       with(meta_scope) {
         meta_cond = eval(run[1]);
       }
-    } catch(err) {}
+    }
     var meta_t = [];
     if (meta_cond || meta_cond === undefined) {
       for (var meta_i = 0; meta_i < run[0].length; meta_i++) {
