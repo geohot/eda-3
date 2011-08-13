@@ -11,10 +11,12 @@ var spanlookup = {
   'l':'i_location',
   'L':'i_corelocation',
   'd':'i_deref',
+  's':'i_immed',
   'i':'i_immed'};
 
 var spanfunction = {
   't':displayParsed,
+  's':parseSignedImmed,
   'i':parseImmed,
   'd':parseDeref,
   'L':parseLocation,
@@ -23,6 +25,9 @@ var spanfunction = {
 function displayParsed(parsed) {
   var ret = "";
   var i;
+  if (parsed === null || parsed === undefined) {
+    return "empty";
+  }
   for (i = 0; i < parsed.length; i++) {
     var c = parsed.substr(i, 1);
     if (c == '\\') {
@@ -49,6 +54,17 @@ function displayParsed(parsed) {
     }
   }
   return ret;
+}
+
+function parseSignedImmed(immed) {
+  var i = fnum(immed);
+  if (i < 0) {
+    i *= -1;
+    if (i >= 0 && i < 10) return '-'+shex(i);
+    else return '-0x'+shex(i);
+  } else {
+    return parseImmed(immed);
+  }
 }
 
 function parseImmed(immed) {

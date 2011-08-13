@@ -224,6 +224,11 @@ parseInstruction = function(laddr, meta_rawdata) {
   }
   meta_retobj = {};
 
+  if (meta_obj['out'] === '') {
+    p(shex(addr)+' no instruction text');
+  }
+
+  meta_retobj['match'] = meta_obj['k'];
   meta_retobj['len'] = meta_obj['bytecount'];
   try {
     meta_retobj['parsed'] = eval(meta_obj['out']);
@@ -231,6 +236,7 @@ parseInstruction = function(laddr, meta_rawdata) {
     p('parse error '+shex(addr)+': '+meta_obj['out']);
     meta_retobj['parsed'] = 'ERROR!';
   }
+
 
   if (meta_retobj['flow'] !== undefined) {
     var meta_flow = JSON.stringify(meta_retobj['flow']);

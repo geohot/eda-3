@@ -8,7 +8,7 @@ $(document).ready(function() {
   registerObjectEditor('parsed', localSaveCallbackParsed);
   registerObjectEditor('env', localSaveCallback);
 
-  setiset('x86');
+  setiset('thumb');
   //runtest(false);
 });
 
@@ -58,6 +58,56 @@ function package_iset() {
   return JSON.stringify(big_obj);
 }
 
+function showBitMatchBox(data, pattern) {
+  var r = '<table><tr>';
+  for (var i = 0; i < pattern.length; i++) {
+    r += '<td>'+pattern.substr(i, 1)+'</td>';
+  }
+  p(data);
+  r += '</tr><tr>';
+  for (var i = 0; i < data.byteLength; i++) {
+    var d;
+    // only for little endian
+    d = data[(data.byteLength-1)-i];
+    for (var j = 0; j < 8; j++) {
+      r += '<td>'+((d>>7)&1)+'</td>';
+      d <<= 1;
+    }
+  }
+
+  r += '</tr></table>';
+  $('#bitmatch')[0].innerHTML = r;
+}
+
+function highlightMatched(e) {
+  var arr = e.id.split('-');
+  var addr = fnum(arr[1]);
+  var len = fnum(arr[2]);
+  var parseobj = parseInstruction(addr, db.raw(addr,len+16));
+  var isetparser = jQuery.parseJSON(localStorage[iset+'_parsed']);
+
+  $('.matched').removeClass("matched");
+
+  for (pmatch in isetparser) {
+    var pmatchs = pmatch.split(' ').join('');
+    if (pmatchs === parseobj['match']) {
+      var parsededitor = $('#parsededitor')[0];
+      var ypos = parsededitor.offsetTop;
+      parsededitor = parsededitor.childNodes[0]; // tbody
+      for (var i = 0; i < parsededitor.childNodes.length; i++) {
+        if (parsededitor.childNodes[i].childNodes[0].innerHTML == pmatch) {
+          parsededitor.childNodes[i].className = "matched";
+          p('highlighted');
+          ypos += parsededitor.childNodes[i].offsetTop;
+          showBitMatchBox(db.raw(addr, len), pmatchs);
+          window.scrollTo(0, ypos-50);
+        }
+      }
+      break;
+    }
+  }
+}
+
 function runtest(commitflag) {
   var teststart = fhex($('#teststart')[0].value);
   var testlength = fhex($('#testlength')[0].value);
@@ -91,7 +141,7 @@ function runtest(commitflag) {
       commitAddress(addr, parseobj);
     }
 
-    ret += '<tr><td>';
+    ret += '<tr onclick="highlightMatched(this)" id="T-'+(teststart+i)+'-'+parseobj['len']+'"><td>';
     ret += shex(teststart+i)+'</td><td>';
     ret += displayDumpFromRaw(parseobj['len'], rawdata.subarray(i))+'</td><td>';
     ret += displayParsed(parseobj['parsed'])+'</td>';

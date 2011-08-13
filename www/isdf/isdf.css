@@ -5,6 +5,15 @@
   right: 10px;
 }
 
+#bitmatch {
+  display: inline-block;
+  position: fixed;
+  top: 10px;
+  right: 500px;
+  background-color: #D0FFFF;
+  padding:5px;
+}
+
 .arrayedit0 {
   color:green;
 }
@@ -14,3 +23,8 @@
 .arrayedit2 {
   color:blue;
 }
+
+.matched {
+  background-color: #FFB0B0;
+}
+

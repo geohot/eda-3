@@ -43,7 +43,7 @@ var db = {
     //p("cache miss");
     p("cache miss "+shex(addr));
     //console.trace();
-    return this.data_cache[addr];
+    return this.data_cache[addr].subarray(0, len);
   },
   setTag: function(addr, name, data) {
     if (this.tags_cache[addr] === undefined) {
