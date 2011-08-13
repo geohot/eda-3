@@ -104,7 +104,20 @@ function parseLocation(ss) {
 }
 
 function displayComment(comment) {
-  return '<span class="comment">// '+comment+'</span>';
+  comment = '; '+comment;  // ensure there's something before the first /
+  var cp = comment.split('/');
+  var ret = "";
+  for (var i = 0; i < cp.length; i++) {
+    if (i&1) {
+      var addr = shex(eval(cp[i]));
+      ret += '<span class="i_location">';
+      ret += '<input type="hidden" class="highlight_'+addr+'" value="'+addr+'"></input>';
+      ret += '0x'+addr+'</span>'
+    } else {
+      ret += cp[i];
+    }
+  }
+  return '<span class="comment">'+ret+'</span>';
 }
 
 function displayImmedFromRaw(length, endian, rawdata) {

@@ -26,6 +26,20 @@ var db = {
       }
     }
   },
+  write: function(addr, data) {
+    for (saddr_str in this.data_cache) {
+      var saddr = fdec(saddr_str);
+      if ( (saddr <= addr) && ((addr+data.length) <= (saddr+this.data_cache[saddr_str].length)) ) {
+        //p(saddr+' '+addr+' '+len+' '+(saddr+this.data_cache[saddr].length));
+        var offset = addr-saddr;
+        for (var i=0; i<data.length; i++) {
+          this.data_cache[saddr_str][offset+i] = data[i];
+        }
+        return;
+      }
+    }
+    this.data_cache[addr] = data;
+  },
   raw: function(addr, len) {
     if (typeof addr !== "number") p('raw: addr type mismatch '+(typeof addr));
     if (typeof len !== "number") p('raw: len type mismatch '+(typeof len));
@@ -38,8 +52,9 @@ var db = {
       }
     }
     // not in cache, add some prefetching
-    this.precacheData(addr-0x100, 0x100);
-    this.precacheData(addr, len+0x100);
+    //this.precacheData(addr-0x100, 0x100);
+    //this.precacheData(addr, len+0x100);
+    this.precacheData(addr, len);
     //p("cache miss");
     p("cache miss "+shex(addr));
     //console.trace();
@@ -58,22 +73,44 @@ var db = {
   },
   tags: function(addr) {
     if (this.tags_cache[addr] === undefined) {
-      p("tag cache miss "+shex(addr));
+      //p("tag cache miss "+shex(addr));
       this.tags_cache[addr] = getTags(addr);
       return this.tags_cache[addr];
     }
     return this.tags_cache[addr];
   },
-  immed: function(addr, len, endian) {
+  setimmed: function(taddr, data, len, endian) {
+    var addr = taddr;
     len = len || this.tags(addr)['len'];
     endian = endian || this.tags(addr)['endian'];
+    if (endian == 'big') {
+      addr += len-1;
+    }
+    var d = new Uint8Array(len);
+    for (var i=0;i<len;i++) {
+      d[i] = (data&0xFF);
+      data >>= 8;
+      if (endian == 'big') {
+        addr -= 1;
+      } else {
+        addr += 1;
+      }
+    }
+    this.write(taddr, d);
+  },
+  immed: function(taddr, len, endian) {
+    var addr = taddr;
+    len = len || this.tags(addr)['len'];
+    endian = endian || this.tags(addr)['endian'];
+    if (typeof len !== "number") len = fnum(len);
+    var raw = this.raw(taddr, len);
     if (endian == 'little') {
       addr += len-1;
     }
     var ret = 0;
-    for (i=0;i<len;i++) {
+    for (var i=0;i<len;i++) {
       ret <<= 8;
-      ret |= this.raw(addr, 1)[0];
+      ret |= raw[addr-taddr];
       if (endian == 'little') {
         addr -= 1;
       } else {

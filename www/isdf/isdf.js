@@ -4,6 +4,18 @@
 // iset and endian have moved to parser
 
 $(document).ready(function() {
+  $('.aobject').live('click', function(e) {
+    highlightMatch(e.currentTarget);
+  });
+
+  $('.behave').live('change', function() {
+    var str = stringifyBehaviorBox();
+    var dom = $('.matched .arrayedit1');
+    dom[0].value = str;
+
+    renderBehaviorBox(str);
+  });
+
   registerObjectEditor('local', localSaveCallback);
   registerObjectEditor('parsed', localSaveCallbackParsed);
   registerObjectEditor('env', localSaveCallback);
@@ -79,6 +91,73 @@ function showBitMatchBox(data, pattern) {
   $('#bitmatch')[0].innerHTML = r;
 }
 
+function doBehaviorSave() {
+  $('.matched .arrayedit1').trigger({'type':'keydown','keyCode':13});
+  $('#behaviorbox')[0].innerHTML = '';
+}
+
+function renderBehaviorBox(s) {
+  var arr = eval(s);
+  $('#behaviorbox')[0].innerHTML = '';
+  var ret = '<table>';
+
+  ret += '<input onclick="doBehaviorSave()" type="button" value="save"></input>';
+
+  if (arr !== undefined) {
+    arr.forEach(function(i) {
+      ret += '<tr>';
+      ret += '<td class="behave"><input value="'+i[0].join(' ')+'"/></input></td>';
+      ret += '<td class="behave"><input value="'+i[1]+'"/></input></td>';
+      ret += '<td class="behave"><input value="'+i[2]+'"/></input></td>';
+      ret += '<td class="behave"><input value="'+i[3]+'"/></input></td>';
+      ret += '</tr>';
+    });
+  }
+
+  ret += '<tr>';
+  ret += '<td class="behave"><input></input></td>';
+  ret += '<td class="behave"><input></input></td>';
+  ret += '<td class="behave"><input></input></td>';
+  ret += '<td class="behave"><input></input></td>';
+  ret += '</tr>';
+
+  ret += '</table>';
+  $('#behaviorbox')[0].innerHTML = ret;
+}
+
+function stringifyBehaviorBox() {
+  var dom = $('#behaviorbox')[0].childNodes[1].childNodes[0];
+  var bigarr = [];
+  for (var j = 0; j<dom.childNodes.length; j++) {
+    var node = dom.childNodes[j];
+    var i = [];
+    if (node.childNodes[0].childNodes[0].value === "") {
+      i[0] = [];
+    } else {
+      i[0] = node.childNodes[0].childNodes[0].value.split(' ');
+    }
+    i[1] = node.childNodes[1].childNodes[0].value;
+    i[2] = node.childNodes[2].childNodes[0].value;
+    i[3] = node.childNodes[3].childNodes[0].value;
+    if (i[0].length !== 0 || i[1] !== '' || i[2] !== '' || i[3] !== '') {
+      bigarr.push(i);
+    }
+  }
+  //p(bigarr);
+  return JSON.stringify(bigarr).replace(/"/g, "'");
+}
+
+function highlightMatch(n) {
+  /*if ($('.matched').length > 0) {
+    doBehaviorSave();
+  }*/
+  $('.matched').removeClass("matched");
+  $(n).addClass("matched");
+
+  var behavior = $('.matched .arrayedit1')[0].value;
+  renderBehaviorBox(behavior);
+}
+
 function highlightMatched(e) {
   var arr = e.id.split('-');
   var addr = fnum(arr[1]);
@@ -86,7 +165,6 @@ function highlightMatched(e) {
   var parseobj = parseInstruction(addr, db.raw(addr,len+16));
   var isetparser = jQuery.parseJSON(localStorage[iset+'_parsed']);
 
-  $('.matched').removeClass("matched");
 
   for (pmatch in isetparser) {
     var pmatchs = pmatch.split(' ').join('');
@@ -96,8 +174,8 @@ function highlightMatched(e) {
       parsededitor = parsededitor.childNodes[0]; // tbody
       for (var i = 0; i < parsededitor.childNodes.length; i++) {
         if (parsededitor.childNodes[i].childNodes[0].innerHTML == pmatch) {
-          parsededitor.childNodes[i].className = "matched";
-          p('highlighted');
+          highlightMatch(parsededitor.childNodes[i]);
+          //p('highlighted');
           ypos += parsededitor.childNodes[i].offsetTop;
           showBitMatchBox(db.raw(addr, len), pmatchs);
           window.scrollTo(0, ypos-50);
@@ -126,6 +204,8 @@ function runtest(commitflag) {
   var i;
   for (i=0;i<testlength;) {
     var parseobj = parseInstruction(teststart+i, rawdata.subarray(i));
+    p(parseobj['parsed']);
+    var runobj = runInstruction(teststart+i, rawdata.subarray(i));
     //p(parseobj);
     if (parseobj == null) {
       ret += '<tr><td>';

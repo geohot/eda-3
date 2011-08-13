@@ -20,7 +20,7 @@ function updateObjectEditor(name, obj, sizekey, sizedata) {
 function updateObjectEditorArray(name, obj, sizekey, sizedata, arraysize) {
   var data = "";
   for (key in obj) {
-    data += '<tr>';
+    data += '<tr class="aobject">';
     data += '<td>'+key+'</td>';
     data += '<td><table>';
     for (var i=0; i < arraysize; i++) {

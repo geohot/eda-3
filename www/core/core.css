@@ -1,0 +1,22 @@
+td {
+  vertical-align: top;
+}
+
+#registers {
+  margin: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
+  display: inline-block;
+  font: 12px Courier New;
+}
+
+#run {
+  margin: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
+  display: inline-block;
+  font: 12px Courier New;
+}
+

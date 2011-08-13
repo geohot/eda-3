@@ -71,4 +71,5 @@ Implemented tags:
 Considering tags:
 * compiled -- the javascript code that actually runs the instruction, can call instruction set locals
 * mmio -- javascript to run when this is read or written
+* type -- the type
 

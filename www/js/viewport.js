@@ -64,7 +64,7 @@ function Viewport(wrapper) {
       for (var i = 0; i < classes.length; i++) {
         var binding = bindings[classes[i]];
         if (binding !== undefined) {
-          var stop = binding(node);
+          var stop = binding(node, e);
           if (stop === true) break;
         }
       }

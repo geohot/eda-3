@@ -510,6 +510,7 @@ Graph.prototype.render = function() {
   var send = "digraph graphname {\n";
 
   gbox = document.createElement('div');
+  gbox.id = 'gbox';
   view.dom[0].innerHTML = ""; // what a hack...
   view.dom[0].appendChild(gbox);
 
@@ -592,7 +593,7 @@ Graph.prototype.render = function() {
       var left = fnum(pos[0]) - (r.offsetWidth/2);
       var top = fnum(gdata[3]) - (fnum(pos[1]) + (r.offsetHeight/2));
 
-      r.style.position = "absolute";
+      //r.style.position = "absolute";
       r.style.left = left;
       r.style.top = top;
 
@@ -698,7 +699,7 @@ Graph.prototype.placeBoxes = function() {
 // returns DOM object containing the vertex
 Graph.prototype.renderVertex = function(addr) {
   var ret = document.createElement('div');
-  ret.className = 'block';
+  ret.className = 'block gblock';
 
   var a = document.createElement('div');
   a.className = 'line';
@@ -714,7 +715,7 @@ Graph.prototype.renderVertex = function(addr) {
     //p(tags);
     t.innerHTML = displayParsed(tags['parsed']);
     if (tags['comment'] !== undefined) {
-      t.innerHTML += '<span class="comment">; '+tags['comment']+'</span>';
+      t.innerHTML += displayComment(tags['comment']);
     }
     ret.appendChild(t);
     i += fnum(tags['len']);

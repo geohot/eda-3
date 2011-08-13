@@ -36,6 +36,9 @@ function objcount(obj) {
 }
 
 function shex(num, len) {
+  if (num === undefined) {
+    return 'UNDEFINED';
+  }
   if (num < 0) num = 0x100000000+num;  // eww 32-bit
   var ret = num.toString(16).toUpperCase();
   if (len != null) {

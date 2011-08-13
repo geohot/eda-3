@@ -37,7 +37,8 @@
 }
 
 .comment {
-  color: #0000FF;
+  /*color: #0000FF;*/
+  color: steelblue;
 }
 
 .i_dump {
@@ -59,3 +60,4 @@
 .f_R {
   color: gray;
 }
+

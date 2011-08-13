@@ -14,6 +14,15 @@
   padding:5px;
 }
 
+#behaviorbox {
+  display: inline-block;
+  position: fixed;
+  top: 100px;
+  right: 500px;
+  background-color: #FFFFD0;
+  padding:5px;
+}
+
 .arrayedit0 {
   color:green;
 }
@@ -26,5 +35,9 @@
 
 .matched {
   background-color: #FFB0B0;
+}
+
+.behave input {
+  width: 300px;
 }
 
