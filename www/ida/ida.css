@@ -16,6 +16,21 @@
   padding-right: 4px;
 }
 
+#core {
+  margin: 5px;
+  float: left;
+  display: inline-block;
+}
+
+#registers {
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
+  display: inline-block;
+  font: 12px Courier New;
+  background-color: white;
+}
+
 #minicanvas {
   position: absolute;
   top: 5px;

@@ -89,6 +89,7 @@ var db = {
     var d = new Uint8Array(len);
     for (var i=0;i<len;i++) {
       d[i] = (data&0xFF);
+      storeByteInPendingCommit(addr, d[i]);
       data >>= 8;
       if (endian == 'big') {
         addr -= 1;

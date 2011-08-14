@@ -4,6 +4,8 @@
 require('js/db.js');
 require('js/viewport.js');
 
+require('core/core.js');
+
 var view;
 
 var gbox;
@@ -18,7 +20,39 @@ $(document).ready(function() {
   } else {
     view.focus(fhex(window.location.hash.substr(1)));
   }
+
+  // err hacky
+  initCore(db.tags(getAddr()-8)['iset']);
 });
+
+function stopRunUntil() {
+  $('#until')[0].value = 'until';
+  untilAddr = null;
+}
+
+function idaStep() {
+  doStep();
+  view.focus(getAddr());
+}
+
+var untilAddr = null;
+function runUntilStart() {
+  untilAddr = view.selectedLine;
+  $('#until')[0].value = 'until 0x'+shex(untilAddr);
+  runUntil();
+}
+
+function runUntil() {
+  if (untilAddr !== null) {
+    idaStep();
+    if (getAddr() !== untilAddr) {
+      setTimeout(runUntil, 0);
+    } else {
+      $('#until')[0].value = 'until';
+      untilAddr = null;
+    }
+  }
+}
 
 function IDAViewport(wrapper) {
   Viewport.call(this, wrapper);
@@ -111,7 +145,7 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
     this.positions[this.focused] = [fnum(gbox.style.left), fnum(gbox.style.top)];
   }
 
-  if (addr == this.focused) {
+  if (addr === this.focused) {
     this.setSelectedLine(addr_inner);
     var d = $('#'+addr_inner)[0];
     var x=0, y=0;
@@ -144,7 +178,7 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
   if (functiontag === undefined) return false;
 
   if (nopush !== true) {
-    window.location.hash = shex(addr);
+    window.location.hash = shex(addr_inner);
     //window.history.pushState(addr);
   }
 
@@ -241,131 +275,9 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
     }
   }
 
-  /*var ins = {};
-  var outs = {};
-  var defaults = {};
-
-  var extents = functiontag.split(' ');
-  for (var i = 0; i < extents.length; i++) {
-    var extent = extents[i].split(':');
-    var extent_addr = fhex(extent[0]);
-    var extent_len = fhex(extent[1]);
-    db.precache(extent_addr, extent_len);
-    p('processing extent '+shex(extent_addr)+'-'+shex(extent_addr + extent_len));
-    for (var j = extent_addr; j < (extent_addr + extent_len);) {
-      var tags = db.tags(j);
-      if (tags['len'] === undefined) {
-        p('!!!ERROR, no length tag in function');
-      }
-      var len = fnum(tags['len']);
-      ins[j] = [];
-      outs[j] = [];
-      j += len;
-    }
-  }
-
-  p(ins);
-  p(outs);
-  p('swagg');
-
-  for (var i = 0; i < extents.length; i++) {
-    var extent = extents[i].split(':');
-    var extent_addr = fhex(extent[0]);
-    var extent_len = fhex(extent[1]);
-    var end;
-    for (var j = extent_addr; j < (extent_addr + extent_len);) {
-      var tags = db.tags(j);
-      if (tags['len'] === undefined) {
-        p('!!!ERROR, no length tag in function');
-      }
-      var len = fnum(tags['len']);
-      var nodefault = false;
-
-      if (tags['flow'] !== undefined) {
-        var flow = eval(tags['flow']);
-        p('flow @ '+shex(j)+' : '+flow);
-        for (var k = 0; k < flow.length; k++) {
-          if (flow[k].substr(0,1) == 'O') {
-            outs[j].push(fhex(flow[k].substr(1))+'-green');
-            //outs[j].push(fhex(flow[k].substr(1)));
-            ins[fhex(flow[k].substr(1))].push(j);
-
-            outs[j].push((j+len)+'-red');
-            //outs[j].push((j+len));
-            ins[j+len].push(j);
-            nodefault = true;
-          } else if (flow[k].substr(0,1) == 'A') {
-            outs[j].push(fhex(flow[k].substr(1)));
-            ins[fhex(flow[k].substr(1))].push(j);
-            nodefault = true;
-          } else if (flow[k].substr(0,1) == 'R') {
-            nodefault = true;
-          }
-        }
-      }
-
-      if (nodefault === false) {
-        outs[j].push(j+len);
-        ins[j+len].push(j);
-      }
-      defaults[j] = j+len;
-      j += len;
-      end = j;
-    }
-
-    p(ins);
-    p(outs);
-
-    var start = extent_addr;
-    var addr;
-    for (saddr in ins) {
-      addr = fnum(saddr);
-      if (ins[addr].length > 1) {
-        this.g.addVertex(start, addr-start);
-        if (start != addr) {
-          this.g.addEdge(start, addr, "blue");
-        }
-        start = addr;
-      }
-
-      if ( (outs[addr].length != 1) || (outs[addr][0] !== defaults[addr])) {
-        var len = fnum(db.tags(addr)['len']);
-        this.g.addVertex(start, addr-start+len);
-        for (var i = 0; i < outs[addr].length; i++) {
-          if (typeof outs[addr][i] == "string") {
-            var o = outs[addr][i].split('-');
-            this.g.addEdge(start, fnum(o[0]), o[1]);
-          } else {
-            this.g.addEdge(start, outs[addr][i], "blue");
-          }
-        }
-        start = addr+len;
-      }
-    }*/
-
-    /*p(bbreaks);
-    p(paths);
-
-    bbreaks = jQuery.unique(bbreaks);
-    bbreaks.sort();
-
-    for (var j = 0; j < bbreaks.length-1; j++) {
-      this.g.addVertex(bbreaks[j], bbreaks[j+1]-bbreaks[j]);
-    }
-    for (var k = 0; k < paths.length; k++) {
-      var from = paths[k][0];
-      var to = paths[k][1];
-      for (var j = 1; j < bbreaks.length-1; j++) {
-        if (bbreaks[j] > from) {
-          from = bbreaks[j-1];
-          break;
-        }
-      }
-      this.g.addEdge(from, to);
-    }
-  }*/
   this.render();
-  this.setSelectedLine(addr_inner);
+  //this.setSelectedLine(addr_inner);
+  this.focus(addr_inner);
 };
 
 IDAViewport.prototype.render = function() {
@@ -373,7 +285,7 @@ IDAViewport.prototype.render = function() {
   if (this.positions[this.focused] !== undefined) {
     this.scrollTo(this.positions[this.focused][0], this.positions[this.focused][1]);
   } else {
-    this.scrollTo(50,50);
+    this.scrollTo(300,50);
   }
 };
 

@@ -204,8 +204,8 @@ function runtest(commitflag) {
   var i;
   for (i=0;i<testlength;) {
     var parseobj = parseInstruction(teststart+i, rawdata.subarray(i));
-    p(parseobj['parsed']);
-    var runobj = runInstruction(teststart+i, rawdata.subarray(i));
+    //p(parseobj['parsed']);
+    //var runobj = runInstruction(teststart+i, rawdata.subarray(i));
     //p(parseobj);
     if (parseobj == null) {
       ret += '<tr><td>';

@@ -294,7 +294,10 @@ runInstruction = function(laddr, meta_rawdata) {
 parseInstruction = function(laddr, meta_rawdata) {
   addr = laddr;
   var meta_obj = getMatch(laddr, meta_rawdata);
-  if (meta_obj === null) return null;
+  if (meta_obj === null) {
+    window.p(shex(addr)+' no match');
+    return null;
+  }
   if (meta_obj['out'] === '') {
     window.p(shex(addr)+' no instruction text');
   }

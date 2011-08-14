@@ -3,43 +3,77 @@
 
 require('js/db.js');
 require('js/parser.js');
+require('js/viewport.js');
 
-var iset = "arm";
 var registerList;
 
 var PC = 0xEDA0003C;
 
-$(document).ready(function() {
+
+function initCore(liset) {
+  iset = liset;
   rebuildParser();
   registerList = db.search('type', 'register');
-  registerList.forEach(function(r) {
-    db.setimmed(r, 0);
-  });
-  db.setimmed(PC, 8);
-  //db.setimmed(0xEDA00000, 0xAABBCCDD);
   displayRegisters();
-});
+}
+
+function doRun() {
+  doStep();
+  setTimeout(doRun, 0);
+}
+
+function editRegister(e) {
+  var addr = fnum(e.target.id.substr(4));
+  view.dialog(db.tags(addr)['name'], function(ret) {
+    db.setimmed(addr, fhex(ret), 4);
+    p('committed '+commit());
+    displayRegisters();
+  }, e.target.innerHTML);
+}
 
 function displayRegisters() {
   var dom = $('#registers')[0];
   dom.innerHTML = "";
   registerList.forEach(function(r) {
     var ins = document.createElement('div');
-    ins.innerHTML = db.tags(r)['name'] + ' = 0x' + shex(db.immed(r));
+    var inreg = document.createElement('span');
+    inreg.innerHTML = '0x'+shex(db.immed(r));
+    inreg.id = 'reg_'+r;
+    inreg.onclick = editRegister;
+
+    ins.innerHTML = db.tags(r)['name'] + ' = ';
+    ins.appendChild(inreg);
+
     dom.appendChild(ins);
   });
 }
 
-function doStep() {
-  var dom = $('#run')[0];
+function getAddr() {
+  var addr = db.immed(PC);
+  if (iset == 'arm') addr-=8;
+  else if (iset == 'thumb') addr-=4;
+  return addr;
+}
 
-  var addr = db.immed(PC)-8;
+function renderIntoBuffer(parseobj, dom) {
+  var ins = document.createElement('div');
+  ins.innerHTML = '0x'+shex(addr)+': '+displayParsed(parseobj['parsed']);
+  if (dom.childNodes.length > 0x20) {
+    dom.removeChild(dom.childNodes[0]);
+  }
+  dom.appendChild(ins);
+}
+
+function doStep() {
+  var addr = getAddr();
   var parseobj = parseInstruction(addr, db.raw(addr, 16));
   var runobj = runInstruction(addr, db.raw(addr, 16));
 
-  var ins = document.createElement('div');
-  ins.innerHTML = '0x'+shex(addr)+': '+displayParsed(parseobj['parsed']);
-  dom.appendChild(ins);
+  var dom = $('#run')[0];
+
+  if (dom !== undefined) {
+    renderIntoBuffer(parseobj, dom);
+  }
 
   //p(runobj);
   var didSetPC = false;
@@ -53,6 +87,8 @@ function doStep() {
   if (didSetPC === false) {
     db.setimmed(PC, db.immed(PC)+parseobj['len']);
   }
+
+  p('committed '+commit());
 
   displayRegisters();
 }

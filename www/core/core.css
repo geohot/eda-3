@@ -20,3 +20,12 @@ td {
   font: 12px Courier New;
 }
 
+#view {
+  margin: 5px;
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
+  display: inline-block;
+  font: 12px Courier New;
+}
+

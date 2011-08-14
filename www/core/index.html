@@ -9,13 +9,22 @@
 <link rel="stylesheet" type="text/css" href="/eda/css/parsed.css" />
 </head>
 <body>
-<input type="button" value="step" onclick="doStep();"/><br/>
+<input type="button" value="step" onclick="doStep();"/>
+<input type="button" value="run" onclick="doRun();"/><br/>
 <table><tr><td>
 <div id="registers"></div>
 </td><td>
 <div id="run"></div>
 </td></tr></table>
+<div id="view"></div>
 <script src="core.js"></script>
+<script>
+var view;
+$(document).ready(function() {
+  initCore('arm');
+  view = new Viewport($('#view'));
+});
+</script>
 </body>
 </html>
 
