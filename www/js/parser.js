@@ -253,27 +253,16 @@ runInstruction = function(laddr, meta_rawdata) {
   var meta_outarr = []
   meta_obj['run'].forEach(function(run) {
     id = [];
-    var meta_cond = undefined;
-    // should probably be a try catch
-    if (run[1].indexOf('id') === -1) {
-      with(meta_scope) {
-        meta_cond = eval(run[1]);
-      }
-    }
     var meta_t = [];
-    if (meta_cond || meta_cond === undefined) {
-      for (var meta_i = 0; meta_i < run[0].length; meta_i++) {
-        with(meta_scope) {
-          meta_t[meta_i] = eval(run[0][meta_i]);
-        }
-        // deref
-        id[meta_i] = db.immed(meta_t[meta_i][0], meta_t[meta_i][1], endian);
-      }
-    }
-    if (meta_cond === undefined) {
+    for (var meta_i = 0; meta_i < run[0].length; meta_i++) {
       with(meta_scope) {
-        meta_cond = eval(run[1]);
+        meta_t[meta_i] = eval(run[0][meta_i]);
       }
+      // deref
+      id[meta_i] = db.immed(meta_t[meta_i][0], meta_t[meta_i][1], endian);
+    }
+    with(meta_scope) {
+      meta_cond = eval(run[1]);
     }
     if (meta_cond) {
       var meta_outval;

@@ -6,20 +6,32 @@ require('js/dbmanager.js');
 // requires data be precached
 // mad broken if data ain't in cache <-- fixed
 var db = {
+  // data_cache is 0x100 chunks
+  // everything must be precached
   data_cache: {},
   tags_cache: {},
+  pending_commit: {},
+  cached_commits: [],
   precache: function(addr, len) {
     p('precaching: '+shex(addr)+' - '+shex(addr+len));
     this.precacheData(addr, len);
     this.precacheTags(addr, len);
   },
   precacheData: function(addr, len) {
-    len += 0x100;
     if (typeof addr !== "number") p('precache: addr type mismatch '+(typeof addr));
-    this.data_cache[addr] = fetchRawAddressRange(addr, len);
+    for (var i = (addr&0xFFFFFF00); i <= ((addr+len)&0xFFFFFF00); i += 0x100) {
+      if (i<0) {
+        this.data_cache[i] = fetchRawAddressRange(0x100000000+i, 0x100);
+      } else {
+        this.data_cache[i] = fetchRawAddressRange(i, 0x100);
+      }
+      p('dcache miss 0x'+shex(i));
+    }
   },
   precacheTags: function(addr, len) {
-    len += 0x100;
+    if (addr < 0x100) addr = 0;
+    else addr -= 0x100;
+    len += 0x200;
     jQuery.extend(this.tags_cache, getMultiTag(addr, len));
     // cache the empty ones as empty
     for (var i=addr; i<addr+len; i++) {
@@ -29,38 +41,44 @@ var db = {
     }
   },
   write: function(addr, data) {
-    for (saddr_str in this.data_cache) {
-      var saddr = fdec(saddr_str);
-      if ( (saddr <= addr) && ((addr+data.length) <= (saddr+this.data_cache[saddr_str].length)) ) {
-        //p(saddr+' '+addr+' '+len+' '+(saddr+this.data_cache[saddr].length));
-        var offset = addr-saddr;
-        for (var i=0; i<data.length; i++) {
-          this.data_cache[saddr_str][offset+i] = data[i];
-        }
-        return;
-      }
+    if (this.data_cache[addr&0xFFFFFF00] === undefined) {
+      this.precacheData(addr, data.length);
     }
-    this.data_cache[addr] = data;
+
+    // unaligned writes are cool i guess
+    for (var i=addr; i<(addr+data.length); i++) {
+      this.data_cache[i&0xFFFFFF00][i&0xFF] = data[i-addr];
+    }
   },
   raw: function(addr, len) {
     if (typeof addr !== "number") p('raw: addr type mismatch '+(typeof addr));
     if (typeof len !== "number") p('raw: len type mismatch '+(typeof len));
-    for (saddr_str in this.data_cache) {
-      var saddr = fdec(saddr_str);
-      if ( (saddr <= addr) && ((addr+len) <= (saddr+this.data_cache[saddr_str].length)) ) {
-        //p(saddr+' '+addr+' '+len+' '+(saddr+this.data_cache[saddr].length));
-        var offset = addr-saddr;
-        return this.data_cache[saddr_str].subarray(offset, offset+len);
+
+    if ((addr&0xFFFFFF00) == ((addr+len-1)&0xFFFFFF00)) {
+      if (this.data_cache[addr&0xFFFFFF00] === undefined) {
+        this.precacheData(addr, len);
       }
+      return this.data_cache[addr&0xFFFFFF00].subarray(addr&0xFF, (addr&0xFF)+len);
+    } else {
+      // please align your accesses stupid bitch
+      var ret = new Uint8Array(len);
+      var rlen = len;
+      var ptr = 0;
+      for (var i = (addr&0xFFFFFF00); i <= ((addr+len)&0xFFFFFF00); i += 0x100) {
+        if (i < addr) {
+          for (var j = 0; j < 0x100-(addr-i); j++) {
+            ret[j] = this.data_cache[i][(addr-i)+j];
+          }
+          rlen -= 0x100-(addr-i);
+          ptr += 0x100-(addr-i);
+        } else {
+          for (var j = 0; j < ((rlen>0x100)?0x100:rlen); j++) {
+            ret[ptr+j] = this.data_cache[i][j];
+          }
+        }
+      }
+      return ret;
     }
-    // not in cache, add some prefetching
-    //this.precacheData(addr-0x100, 0x100);
-    this.precacheData(addr, len);
-    //this.precacheData(addr, len);
-    //p("cache miss");
-    p("cache miss "+shex(addr));
-    //console.trace();
-    return this.data_cache[addr].subarray(0, len);
   },
   setTag: function(addr, name, data) {
     if (this.tags_cache[addr] === undefined) {
@@ -92,7 +110,8 @@ var db = {
     var d = new Uint8Array(len);
     for (var i=0;i<len;i++) {
       d[i] = (data&0xFF);
-      storeByteInPendingCommit(addr, d[i]);
+      //storeByteInPendingCommit(addr, d[i]);
+      this.toPendingCommit(addr, d[i]);
       data >>= 8;
       if (endian == 'big') {
         addr -= 1;
@@ -101,6 +120,23 @@ var db = {
       }
     }
     this.write(taddr, d);
+  },
+  toPendingCommit: function(addr, data) {
+    this.pending_commit[shex(addr)] = data;
+  },
+  cacheCommit: function() {
+    this.cached_commits.push(this.pending_commit);
+    this.pending_commit = {};
+  },
+  // async FTW
+  flushCommitCache: function() {
+    if (this.cached_commits.length > 0) {
+      var req = new XMLHttpRequest();
+      req.open('POST', '/eda/edadb/multicommit.php', true);
+      var data = JSON.stringify(this.cached_commits);
+      this.cached_commits = [];
+      req.send(data);
+    }
   },
   immed: function(taddr, len, endian) {
     var addr = taddr;

@@ -9,12 +9,25 @@ var registerList;
 
 var PC = 0xEDA0003C;
 
+var instructionsRun = 0;
+var lastInstructionsRun = 0;
+
+function getFrequency() {
+  //p( (instructionsRun - lastInstructionsRun) + " hz");
+  $('#frequency')[0].innerHTML = (instructionsRun - lastInstructionsRun) + " hz";
+  lastInstructionsRun = instructionsRun;
+  setTimeout(getFrequency, 1000);
+
+  // hacky
+  db.flushCommitCache();
+}
 
 function initCore(liset) {
   iset = liset;
   rebuildParser();
   registerList = db.search('type', 'register');
   displayRegisters();
+  getFrequency();
 }
 
 function doRun() {
@@ -88,10 +101,14 @@ function doStep() {
   });
 
   if (didSetPC === false) {
-    db.setimmed(PC, db.immed(PC)+parseobj['len']);
+
+    db.setimmed(PC, db.immed(PC)+parseobj['len'], 4);
+    $('#reg_'+PC)[0].innerHTML = '0x'+shex(db.immed(PC));
   }
 
   //p('committed '+commit());
+  db.cacheCommit();
+  instructionsRun++;
 
   //displayRegisters();
 }

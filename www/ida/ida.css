@@ -16,10 +16,15 @@
   padding-right: 4px;
 }
 
+#frequency {
+  font: 12px Courier New;
+}
+
 #core {
   margin: 5px;
   float: left;
   display: inline-block;
+  z-index: 10;
 }
 
 #registers {

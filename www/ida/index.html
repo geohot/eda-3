@@ -10,15 +10,16 @@
 <link rel="stylesheet" type="text/css" href="/eda/css/parsed.css" />
 </head>
 <body>
+<div class="minimap" id="minimap">
+<canvas id="minicanvas" width=0 height=0></canvas>
+<canvas id="miniframe" width=0 height=0></canvas>
+</div>
 <div id="core">
 <input type="button" value="step" onclick="idaStep()" />
 <input type="button" id="until" value="until" onclick="runUntilStart()" />
 <input type="button" value="stop" onclick="stopRunUntil()" /><br/>
+<span id="frequency"></span><br/>
 <div id="registers"></div>
-</div>
-<div class="minimap" id="minimap">
-<canvas id="minicanvas" width=0 height=0></canvas>
-<canvas id="miniframe" width=0 height=0></canvas>
 </div>
 <div id="viewporthtmlwrapper">
 </div>

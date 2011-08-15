@@ -5,15 +5,17 @@ var included = {};
 
 function require(name) {
   if (included[name] == true) return;
-  var req = new XMLHttpRequest();
   included[name] = true;
+  p('including '+name);
+
+  var req = new XMLHttpRequest();
   req.open('GET', '/eda/'+name, false);
   req.send(null);
-  p('including '+name);
 
   with(window) {
     eval(req.response);
   }
+  //document.head.innerHTML += '<script src="/eda/'+name+'"></script>';
 }
 
 function p(printme) {
