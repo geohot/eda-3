@@ -282,7 +282,7 @@ runInstruction = function(laddr, meta_rawdata) {
         meta_outval = eval(run[2]);
         meta_out = eval(run[3]);
       }
-      p(meta_t.map(symbolize)+' set '+symbolize(meta_out)+' to 0x'+shex(meta_outval));
+      //p(meta_t.map(symbolize)+' set '+symbolize(meta_out)+' to 0x'+shex(meta_outval));
       meta_outarr.push([meta_out, meta_outval]);
     }
   });

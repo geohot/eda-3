@@ -82,14 +82,17 @@ function doStep() {
       didSetPC = true;
     }
     db.setimmed(set[0][0], set[1], set[0][1]);
+    if (registerList.indexOf(set[0][0]) !== -1) {
+      $('#reg_'+set[0][0])[0].innerHTML = '0x'+shex(set[1]);
+    }
   });
 
   if (didSetPC === false) {
     db.setimmed(PC, db.immed(PC)+parseobj['len']);
   }
 
-  p('committed '+commit());
+  //p('committed '+commit());
 
-  displayRegisters();
+  //displayRegisters();
 }
 

@@ -14,10 +14,12 @@ var db = {
     this.precacheTags(addr, len);
   },
   precacheData: function(addr, len) {
+    len += 0x100;
     if (typeof addr !== "number") p('precache: addr type mismatch '+(typeof addr));
     this.data_cache[addr] = fetchRawAddressRange(addr, len);
   },
   precacheTags: function(addr, len) {
+    len += 0x100;
     jQuery.extend(this.tags_cache, getMultiTag(addr, len));
     // cache the empty ones as empty
     for (var i=addr; i<addr+len; i++) {
@@ -53,8 +55,8 @@ var db = {
     }
     // not in cache, add some prefetching
     //this.precacheData(addr-0x100, 0x100);
-    //this.precacheData(addr, len+0x100);
     this.precacheData(addr, len);
+    //this.precacheData(addr, len);
     //p("cache miss");
     p("cache miss "+shex(addr));
     //console.trace();
@@ -74,7 +76,8 @@ var db = {
   tags: function(addr) {
     if (this.tags_cache[addr] === undefined) {
       //p("tag cache miss "+shex(addr));
-      this.tags_cache[addr] = getTags(addr);
+      //this.tags_cache[addr] = getTags(addr);
+      this.precacheTags(addr, 1);
       return this.tags_cache[addr];
     }
     return this.tags_cache[addr];
