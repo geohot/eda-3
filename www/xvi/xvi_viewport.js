@@ -40,16 +40,6 @@ function highlightChange(vc) {
   }
 }
 
-function toPrintable(chr) {
-  if (chr >= 0x20 && chr < 0x80) {
-    return String.fromCharCode(chr);
-  } else if (chr >= 0xA0 && chr < 0x100 && chr != 0xAD) {
-    return String.fromCharCode(chr);
-  } else {
-    return String.fromCharCode(0x1700);
-  }
-}
-
 $('#hexdata').delegate('td', 'mousedown', function(){
   selectAddress(fhex($(this)[0].id.substr(1)), 'H');
 });

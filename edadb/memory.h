@@ -85,7 +85,7 @@ class Memory {
   }
 
   map<uint64_t, Byte*> memory_;
-  uint64_t change_;
+  uint64_t change_;   // current max changelist number
 
 // storage for the memory metadata
   map<uint64_t, TagsObject> memory_tags_;

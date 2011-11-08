@@ -183,6 +183,9 @@ function uploadELFFile(ab) {
     p(shex(shd[4])+'  '+shex(shd[3])+' '+sh_name_str+' '+shex(shd[5])+' '+shex(shd[1])+' '+shex(shd[2]));
     if (shd[1] == SHT_SYMTAB) symtab = new Uint32Array(ab, shd[4], shd[5]/4);
     if (shd[1] == SHT_STRTAB) strtab = new Uint8Array(ab, shd[4], shd[5]);
+    if (sh_name_str.substr(0,6) == '.debug') {
+      hexdump(new Uint8Array(extractRegion(ab, shd[4], shd[5])));
+    }
   }
 
   if (symtab !== undefined && strtab !== undefined) {

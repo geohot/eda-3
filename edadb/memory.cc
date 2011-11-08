@@ -75,7 +75,32 @@ void Memory::fetchExtents(
 
 void Memory::getMatchingList(ChangelistList& _return,
     const ExtentsMap& extents) const {
-  // TODO(geohot) implement this
+  map<Byte*, uint8_t> matching_set;
+  for (ExtentsMap::const_iterator iter = extents.begin(); iter != extents.end(); ++iter) {
+    for (int i = 0; i < iter->second.length(); i++) {
+      map<uint64_t, Byte*>::const_iterator a = memory_.find(i);
+      if (a == memory_.end()) {
+        // if a byte isn't defined, there's no way in hell it'll match
+        return;
+      }
+      matching_set.insert(std::make_pair(a->second, iter->second[i]));
+    }
+  }
+
+  // matching_set is built
+  // write this stupidly, fix later
+  for (uint64_t i = 0; i < change_; i++) {
+    bool match = true;
+    for (map<Byte*, uint8_t>::iterator iter = matching_set.begin(); iter != matching_set.end(); ++iter) {
+      if (iter->second != iter->first->get(i)) {
+        match = false;
+        break;
+      }
+    }
+    if (match) {
+      _return.insert(i);
+    }
+  }
 }
 
 void Memory::getWriterList(ChangelistList& _return, uint64_t addr) const {

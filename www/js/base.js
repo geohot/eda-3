@@ -71,8 +71,40 @@ function chr(num) {
   return String.fromCharCode(num);
 }
 
+function toPrintable(chr) {
+  if (chr >= 0x20 && chr < 0x80) {
+    return String.fromCharCode(chr);
+  } else if (chr >= 0xA0 && chr < 0x100 && chr != 0xAD) {
+    return String.fromCharCode(chr);
+  } else {
+    //return String.fromCharCode(0x1700);
+    return '#';
+  }
+}
+
+
 function asc(str, offset) {
   if (offset == null) offset = 0;
   return str.charCodeAt(offset);
+}
+
+function hexdump(data) {
+  var line = "";
+  var chars = "";
+  for (var i = 0; i < data.byteLength; i++) {
+    if (i!=0 && (i%0x10)==0) {
+      p(line + " | "+chars);
+      line = "";
+      chars = "";
+    }
+    line += shex(data[i], 2)+" ";
+    chars += toPrintable(data[i]);
+  }
+  if ((data.byteLength%0x10) !== 0) {
+    for (var i = 0; i < (0x10-(data.byteLength%0x10)); i++) {
+      line += "   ";
+    }
+  }
+  p(line + " | "+chars);
 }
 
