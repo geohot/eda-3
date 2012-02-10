@@ -25,8 +25,9 @@ FlatViewport.prototype.parent = Viewport;
 
 // overloaded
 FlatViewport.prototype.handleScrolling = function(delta) {
-  this.viewAddress -= (delta/20);
+  this.viewAddress -= Math.floor(delta/20);
   this.render();
+  return false;
 }
 
 FlatViewport.prototype.focus = function(addr, nopush) {

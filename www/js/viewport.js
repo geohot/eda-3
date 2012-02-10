@@ -84,7 +84,7 @@ function Viewport(wrapper) {
 
   this.dom[0].onmousewheel = function(e) {
     if (this.handleScrolling !== undefined) {
-      this.handleScrolling(e.wheelDelta);
+      return this.handleScrolling(e.wheelDelta);
     }
   }.bind(this);
 

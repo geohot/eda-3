@@ -12,9 +12,11 @@ function require(name) {
   req.open('GET', '/eda/'+name, false);
   req.send(null);
 
-  with(window) {
+  /*with(window) {
     eval(req.response);
-  }
+    //p(req.response);
+  }*/
+  window.eval(req.response);
   //document.head.innerHTML += '<script src="/eda/'+name+'"></script>';
 }
 
