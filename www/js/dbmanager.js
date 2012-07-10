@@ -58,9 +58,15 @@ function getcommit(clnumber) {
 }
 
 function getcommitextents(clnumber) {
+  if (isNaN(clnumber)) {
+    console.error('NaN isn\'t a changelist');
+    return;
+  }
   var req = new XMLHttpRequest();
+  p(clnumber);
   req.open('GET', '/eda/edadb/getchangelistextents.php?n='+clnumber, false);
   req.send(null);
+  p(req);
   return jQuery.parseJSON(req.response);
 }
 

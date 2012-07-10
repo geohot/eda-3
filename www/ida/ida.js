@@ -16,13 +16,13 @@ $(document).ready(function() {
   view.registerDefaultHandlers();
   //view.focus(0x50DC);
   if (window.location.hash == "") {
-    view.focus(0x80108000);
+    view.focus(0);
   } else {
     view.focus(fhex(window.location.hash.substr(1)));
   }
 
-  // err hacky
-  initCore(db.tags(getAddr()-8)['iset']);
+  // err hacky, not always arm
+  initCore('arm');
 });
 
 function stopRunUntil() {
@@ -267,6 +267,8 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
 
   for (b in bblocks) {
     var a = fnum(b);
+    var flow = db.tags(a)['flow'];
+    if (flow != null && flow.indexOf('R') != -1) continue;
     if (this.g.vertices[a].children.length == 0) {
       var ta = get_bblock_start(a+bblocks[a]);
       if (ta !== null) {

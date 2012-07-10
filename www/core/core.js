@@ -39,7 +39,8 @@ function editRegister(e) {
   var addr = fnum(e.target.id.substr(4));
   view.dialog(db.tags(addr)['name'], function(ret) {
     db.setimmed(addr, fhex(ret), 4);
-    p('committed '+commit());
+    p('setimmed '+shex(addr)+' = '+ret);
+    p('committed '+db.commit());
     displayRegisters();
   }, e.target.innerHTML);
 }
@@ -88,20 +89,22 @@ function doStep() {
     renderIntoBuffer(parseobj, dom);
   }
 
-  //p(runobj);
   var didSetPC = false;
-  runobj.forEach(function(set) {
-    if (set[0][0] == PC) {
-      didSetPC = true;
-    }
-    db.setimmed(set[0][0], set[1], set[0][1]);
-    if (registerList.indexOf(set[0][0]) !== -1) {
-      $('#reg_'+set[0][0])[0].innerHTML = '0x'+shex(set[1]);
-    }
-  });
+  if (runobj != null) {
+    runobj.forEach(function(set) {
+      if (set[0][0] == PC) {
+        didSetPC = true;
+      }
+      db.setimmed(set[0][0], set[1], set[0][1]);
+      if (registerList.indexOf(set[0][0]) !== -1) {
+        $('#reg_'+set[0][0])[0].innerHTML = '0x'+shex(set[1]);
+      }
+    });
+  } else {
+    p("WARNING: "+shex(getAddr())+" didn't do anything");
+  }
 
   if (didSetPC === false) {
-
     db.setimmed(PC, db.immed(PC)+parseobj['len'], 4);
     $('#reg_'+PC)[0].innerHTML = '0x'+shex(db.immed(PC));
   }

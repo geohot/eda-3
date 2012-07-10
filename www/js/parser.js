@@ -244,9 +244,13 @@ symbolize = function(arraddr) {
 runInstruction = function(laddr, meta_rawdata) {
   addr = laddr;
   var meta_obj = getMatch(laddr, meta_rawdata);
-  if (meta_obj === null) return null;
+  if (meta_obj === null) {
+    p('no match for instruction at '+shex(laddr));
+    p(meta_rawdata);
+    return null;
+  }
   if (meta_obj['run'] === undefined || meta_obj['run'] === null) {
-    p('cant run, no data');
+    p('cant run instruction, no data');
     return null;
   }
   var meta_scope = getLocalScope(meta_obj, meta_rawdata);

@@ -121,6 +121,15 @@ var db = {
     }
     this.write(taddr, d);
   },
+  commit: function() {
+    var req = new XMLHttpRequest();
+    req.open('POST', '/eda/edadb/commit.php', false);
+    var data = JSON.stringify(this.pending_commit);
+    req.send(data);
+
+    this.pending_commit = {};
+    return fdec(req.response);
+  },
   toPendingCommit: function(addr, data) {
     this.pending_commit[shex(addr)] = data;
   },
@@ -130,6 +139,9 @@ var db = {
   },
   // async FTW
   flushCommitCache: function() {
+    if (this.pending_commit.length > 0) {
+      this.cached_commits.push(this.pending_commit);
+    }
     if (this.cached_commits.length > 0) {
       var req = new XMLHttpRequest();
       req.open('POST', '/eda/edadb/multicommit.php', true);
