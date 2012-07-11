@@ -147,7 +147,10 @@ IDAViewport.prototype.scrollTo = function(x, y) {
 
 IDAViewport.prototype.focus = function(addr_inner, nopush) {
   var scope = db.tags(addr_inner)['scope'];
-  if (scope === undefined) return false;
+  if (scope === undefined) {
+    p('cant focus on '+shex(addr_inner));
+    return false;
+  }
   var addr = fhex(scope);
 
   if (this.focused !== null) {

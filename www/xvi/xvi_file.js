@@ -53,25 +53,27 @@ function extractRegion(ab, fileoff, filesize) {
 
 function handleFileReadDone(e) {
   var ab = fourify(e.target.result);
-  var d = new Uint32Array(ab, 0, 0x40);
-  p(shex(d[0]));
-  if (d[0] == 0xFEEDFACE) {
-    $('#dropzone')[0].innerHTML = "parsing Mach-O file";
-    uploadMachOFile(ab);
-    $('#dropzone')[0].innerHTML = "Mach-O file uploaded";
-    return;
-  }
-  if (d[0] == 0x464C457F) {
-    $('#dropzone')[0].innerHTML = "parsing ELF file";
-    uploadELFFile(ab);
-    $('#dropzone')[0].innerHTML = "ELF file uploaded";
-    return;
-  }
-  if ( (d[0]&0xFFFF) == 0x5A4D && d[d[15]/4] == 0x4550) {
-    $('#dropzone')[0].innerHTML = "parsing PE file";
-    uploadPEFile(ab);
-    $('#dropzone')[0].innerHTML = "PE file uploaded";
-    return;
+  if (ab.length >= 0x40) {
+    var d = new Uint32Array(ab, 0, 0x40);
+    p(shex(d[0]));
+    if (d[0] == 0xFEEDFACE) {
+      $('#dropzone')[0].innerHTML = "parsing Mach-O file";
+      uploadMachOFile(ab);
+      $('#dropzone')[0].innerHTML = "Mach-O file uploaded";
+      return;
+    }
+    if (d[0] == 0x464C457F) {
+      $('#dropzone')[0].innerHTML = "parsing ELF file";
+      uploadELFFile(ab);
+      $('#dropzone')[0].innerHTML = "ELF file uploaded";
+      return;
+    }
+    if ( (d[0]&0xFFFF) == 0x5A4D && d[d[15]/4] == 0x4550) {
+      $('#dropzone')[0].innerHTML = "parsing PE file";
+      uploadPEFile(ab);
+      $('#dropzone')[0].innerHTML = "PE file uploaded";
+      return;
+    }
   }
   if (fileName.lastIndexOf("@") == -1) {
     $('#dropzone')[0].innerHTML = "needs @address tag";

@@ -112,4 +112,76 @@ TEST_F(ARMCoreTest, CMPSBLO) {
   EXPECT_EQ(0xAC+0x10, ac.get32(R(15)));
 }
 
+TEST_F(ARMCoreTest, PUSHPOP) {
+  ARMCore ac;
+  ac.init();
+  ac.set32(R(0), 0x1234);
+  ac.set32(R(1), 0x5678);
+  ac.set32(R(13), 0x1000);
+  ac.set32(R(15), 0x8);
+
+  ac.set32(0, 0xe92d0003); // push {r0, r1}
+  ac.set32(4, 0xe8bd0003); // pop {r0, r1}
+  ac.done();
+
+  ac.step();
+
+  ac.init();
+  ac.set32(R(0), 0);
+  ac.set32(R(1), 0);
+  ac.done();
+
+  ac.step();
+
+  EXPECT_EQ(0x1234, ac.get32(R(0)));
+  EXPECT_EQ(0x5678, ac.get32(R(1)));
+}
+
+TEST_F(ARMCoreTest, LDRH) {
+  ARMCore ac;
+  ac.init();
+  ac.set32(0x10010, 0xABCDEF12);
+  ac.set32(R(1), 0x10000);
+  ac.set32(R(15), 0x8);
+  ac.set32(0, 0xE1D121B2); // LDRH R2, [R1, #0x12]
+  ac.done();
+
+  ac.step();
+
+  EXPECT_EQ(0xABCD, ac.get32(R(2)));
+}
+
+TEST_F(ARMCoreTest, STRwriteback) {
+  ARMCore ac;
+  ac.init();
+  ac.set32(R(11), 0x99887766);
+  ac.set32(R(13), 0x10000);
+  ac.set32(R(15), 0x8);
+  ac.set32(0, 0xE52DB004); // STR R11, [SP, #-4]!
+  ac.done();
+
+  ac.step();
+
+  EXPECT_EQ(0x99887766, ac.get32(0xFFFC));
+  EXPECT_EQ(0xFFFC, ac.get32(R(13)));
+}
+
+TEST_F(ARMCoreTest, SimpleProgram) {
+  Memory::Inst()->readFromFile("/Users/geohot/eda-3/armcore/tests/simple/simple.edb");
+  ARMCore ac;
+  
+  int count = 0;
+
+  while (ac.get32(R(15)) != 0x20008) {
+    ac.step();
+    count++;
+  }
+  
+  printf("ran %d instructions\n", count);
+
+  EXPECT_EQ(0x20008, ac.get32(R(15)));
+  EXPECT_EQ(0x20000, ac.get32(R(14)));
+  EXPECT_EQ(0x10000, ac.get32(R(13)));
+  EXPECT_EQ(0x1234AABB, ac.get32(R(0)));
+}
 

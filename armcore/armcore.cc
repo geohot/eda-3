@@ -69,10 +69,10 @@ if (cond_good == true) {
       doDataProcessing(); break;
     case ARM_LSIO: //Load/store immediate offset
     case ARM_LSRO: //Load/store register offset
+    case ARM_MELS: //Multiply extra loads stores
       doLoadStore(); break;
     case ARM_LSM: //Load/store multiple
       doLoadStoreMultiple(); break;
-    case ARM_MELS: //Multiply extra loads stores
     case ARM_MI: //Miscellaneous instructions
     case ARM_MISR: //Move immediate to status register
       doMiscellaneous(); break;
@@ -199,6 +199,13 @@ void ARMCore::doLoadStore() {
     case ARM_LSRO: //Load/store register offset
       offset = shift(get32(R(in->lsro.Rm)), in->lsro.shift, in->lsro.shift_imm);
       break;
+    case ARM_MELS:
+      if (in->mels.I) {
+        offset = ((in->mels.addr_mode_hi) << 4) | in->mels.addr_mode_lo;
+      } else {
+        offset = get32(R(in->lsro.Rm));
+      }
+      break;
   }
   if (!(in->lsio.U)) offset *= -1;
 
@@ -208,14 +215,27 @@ void ARMCore::doLoadStore() {
     addr = get32(R(in->generic.Rn));
   }
 
-  if (in->lsio.W || !(in->lsio.P)) {
+  // writeback
+  if (in->lsio.W) {
+    set32(R(in->generic.Rn), addr);
+  }
+
+  // post indexed
+  if (!in->lsio.P) {
     set32(R(in->generic.Rn), addr+offset);
   }
 
+  int bits = 4;
+  if (encodingARM == ARM_MELS) {
+    if (in->mels.H) bits = 2;
+  } else if (in->lsio.B) {
+    bits = 1;
+  }
+
   if (in->lsio.L) {
-    set(R(in->generic.Rd), get32(addr), (in->lsio.B)?1:4);
+    set(R(in->generic.Rd), get32(addr), bits);
   } else {
-    set(addr, get32(R(in->generic.Rd)), (in->lsio.B)?1:4);
+    set(addr, get32(R(in->generic.Rd)), bits);
   }
 
   if (in->generic.Rd != REG_PC) {
@@ -230,19 +250,24 @@ void ARMCore::doLoadStoreMultiple() {
   uint32_t addr = get32(R(in->lsm.Rn));
 
   int rl = in->lsm.register_list;
-  for (int rn = 0; rn <= 15; rn++) {
-    if (rl&1) {
+  for (int rrn = 0; rrn <= 15; rrn++) {
+    int rn = rrn;
+    if (!in->lsm.U) rn = 15-rn; // reverse the order, hacky a little
+    if ((rl>>rn)&1) {
       if (in->lsm.P) addr += 4*((in->lsm.U)?1:-1);
 
       if (in->lsm.L) {
-        set32(R(rn), get32(addr));
+        if (rn == REG_PC) {
+          set32(R(rn), get32(addr)+8);
+        } else {
+          set32(R(rn), get32(addr));
+        }
       } else {
         set32(addr, get32(R(rn)));
       }
       
       if (!(in->lsm.P)) addr += 4*((in->lsm.U)?1:-1);
     }
-    rl >>= 1;
   }
 
   if (in->lsm.W) set32(R(in->lsm.Rn), addr);
@@ -254,7 +279,7 @@ void ARMCore::doLoadStoreMultiple() {
 
 void ARMCore::doMiscellaneous() {
   if ((opcode & 0x0FF000D0) == 0x01200010) { // BX or BLX
-    if (in->mi.L) {
+    if (opcode & 0x20) {
       set32(R(REG_LR), PC-4);
     }
     set32(R(REG_PC), get32(R(in->generic.Rm))+8);
