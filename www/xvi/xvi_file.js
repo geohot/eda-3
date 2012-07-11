@@ -53,7 +53,8 @@ function extractRegion(ab, fileoff, filesize) {
 
 function handleFileReadDone(e) {
   var ab = fourify(e.target.result);
-  if (ab.length >= 0x40) {
+  p(ab);
+  if (ab.byteLength >= 0x40) {
     var d = new Uint32Array(ab, 0, 0x40);
     p(shex(d[0]));
     if (d[0] == 0xFEEDFACE) {

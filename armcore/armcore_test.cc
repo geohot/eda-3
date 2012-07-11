@@ -6,11 +6,22 @@
 
 #include "armcore/armcore.h"
 
+#include <pthread.h>
+
 using namespace edadb;
+
+extern void start_edadb();
+
+void* server_thread(void* no) {
+  start_edadb();
+}
 
 class ARMCoreTest : public testing::Test {
  public:
   ARMCoreTest() {
+    pthread_t thread;
+    pthread_create(&thread, NULL, server_thread, NULL);
+    usleep(10000);
   }
  protected:
   virtual void SetUp() {
@@ -168,10 +179,38 @@ TEST_F(ARMCoreTest, STRwriteback) {
 
 TEST_F(ARMCoreTest, SimpleProgram) {
   Memory::Inst()->readFromFile("/Users/geohot/eda-3/armcore/tests/simple/simple.edb");
+
+  //system("node ~/eda-3/armcore/tests/elfloader.js ~/eda-3/armcore/tests/simple/simple");
   ARMCore ac;
   
   int count = 0;
 
+  while (ac.get32(R(15)) != 0x20008) {
+    ac.step();
+    count++;
+  }
+  
+  printf("ran %d instructions\n", count);
+
+  EXPECT_EQ(0x20008, ac.get32(R(15)));
+  EXPECT_EQ(0x20000, ac.get32(R(14)));
+  EXPECT_EQ(0x10000, ac.get32(R(13)));
+  EXPECT_EQ(0x1234AABB, ac.get32(R(0)));
+}
+
+
+TEST_F(ARMCoreTest, SimpleProgramWithServer) {
+// upload the elf file
+  system("node ~/eda-3/armcore/tests/elfloader.js ~/eda-3/armcore/tests/simple/simple");
+
+  ARMCore ac;
+  ac.init();
+  ac.set32(R(13), 0x10000);
+  ac.set32(R(14), 0x20000);
+  ac.set32(R(15), 0x8008);
+  ac.done();
+
+  int count = 0;
   while (ac.get32(R(15)) != 0x20008) {
     ac.step();
     count++;

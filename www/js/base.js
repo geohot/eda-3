@@ -3,21 +3,24 @@
 
 var included = {};
 
-function require(name) {
-  if (included[name] == true) return;
-  included[name] = true;
-  p('including '+name);
+// hack for node
+if (typeof window !== 'undefined') {
+ window.require = function(name) {
+    if (included[name] == true) return;
+    included[name] = true;
+    p('including '+name);
 
-  var req = new XMLHttpRequest();
-  req.open('GET', '/eda/'+name, false);
-  req.send(null);
+    var req = new XMLHttpRequest();
+    req.open('GET', '/eda/'+name, false);
+    req.send(null);
 
-  /*with(window) {
-    eval(req.response);
-    //p(req.response);
-  }*/
-  window.eval(req.response);
-  //document.head.innerHTML += '<script src="/eda/'+name+'"></script>';
+    /*with(window) {
+      eval(req.response);
+      //p(req.response);
+    }*/
+    window.eval(req.response);
+    //document.head.innerHTML += '<script src="/eda/'+name+'"></script>';
+  }
 }
 
 function p(printme) {

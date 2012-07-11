@@ -7,6 +7,10 @@ SET(EDADB_SRCS
 ./edadb/byte.cc
 ./edadb/memory.cc
 ./armcore/armcore.cc
+./edadb/edadb.cc
+./edadb/gen-cpp/EDAdb.cpp
+./edadb/gen-cpp/edadb_constants.cpp
+./edadb/gen-cpp/edadb_types.cpp
 )
 INCLUDE_DIRECTORIES(./)
 INCLUDE_DIRECTORIES(/opt/local/include)
@@ -16,10 +20,7 @@ INCLUDE_DIRECTORIES(~/devtools/thrift-0.6.1/lib/cpp/src)
 LINK_DIRECTORIES(/opt/local/lib)
 ADD_LIBRARY(edadb ${EDADB_SRCS})
 ADD_EXECUTABLE(edadb_server
-./edadb/edadb.cc
-./edadb/gen-cpp/EDAdb.cpp
-./edadb/gen-cpp/edadb_constants.cpp
-./edadb/gen-cpp/edadb_types.cpp
+./edadb/main.cc
 )
 TARGET_LINK_LIBRARIES(edadb_server edadb "thrift" "boost_serialization")
 
@@ -41,7 +42,7 @@ if(IS_DIRECTORY "/Users/geohot/devtools/gtest-1.6.0")
   LINK_DIRECTORIES(${GTEST_DIR}/lib/.libs)
 
   ADD_EXECUTABLE(edadb_test EXCLUDE_FROM_ALL ${GTEST_DIR}/src/gtest_main.cc ${EDADB_TESTS})
-  TARGET_LINK_LIBRARIES(edadb_test edadb "gtest" "pthread" "boost_serialization") 
+  TARGET_LINK_LIBRARIES(edadb_test edadb "thrift" "gtest" "pthread" "boost_serialization") 
   ADD_CUSTOM_TARGET(test
     COMMAND ./edadb_test
     DEPENDS edadb_test

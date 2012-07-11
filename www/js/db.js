@@ -1,7 +1,9 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2011 George Hotz. All rights reserved.
 
-require('js/dbmanager.js');
+if (typeof window !== 'undefined') {
+  require('js/dbmanager.js');
+}
 
 // requires data be precached
 // mad broken if data ain't in cache <-- fixed

@@ -129,7 +129,7 @@ class EDAdbHandler : virtual public EDAdbIf {
   ARMCore ac;
 };
 
-int main(int argc, char** argv) {
+void start_edadb() {
   int port = 9090;
   shared_ptr<EDAdbHandler> handler(new EDAdbHandler());
   shared_ptr<TProcessor> processor(new EDAdbProcessor(handler));
@@ -142,10 +142,6 @@ int main(int argc, char** argv) {
                        transportFactory,
                        protocolFactory);
 
-  printf("starting the EDAdb...\n");
-  printf("with ARM support\n");
   server.serve();
-  printf("exiting...\n");
-  return 0;
 }
 
