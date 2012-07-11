@@ -177,6 +177,7 @@ void Memory::readFromFile(const std::string& filename) {
   printf("reading from file %s...\n", filename.c_str());
   std::ifstream ifs(filename.c_str(), std::ios::binary);
   boost::archive::binary_iarchive ia(ifs);
+  // this is hacky, any saved ptrs to Inst need to die
   Memory* replace = new Memory;
   ia >> replace;
   delete inst_;

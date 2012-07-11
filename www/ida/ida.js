@@ -35,6 +35,15 @@ function idaStep() {
   view.focus(getAddr());
 }
 
+function idaRemoteStep() {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/edadb/step.php', false);
+  req.send(null);
+  db.invalidateDCachePage(0xEDA00000);
+  displayRegisters();
+  view.focus(getAddr());
+}
+
 var untilAddr = null;
 function runUntilStart() {
   untilAddr = view.selectedLine;

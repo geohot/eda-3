@@ -28,6 +28,9 @@ var db = {
       p('dcache miss 0x'+shex(i));
     }
   },
+  invalidateDCachePage: function(addr) {
+    this.data_cache[addr&0xFFFFFF00] = undefined;
+  },
   precacheTags: function(addr, len) {
     if (addr < 0x100) addr = 0;
     else addr -= 0x100;

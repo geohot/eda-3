@@ -3,7 +3,11 @@
 
 #include <iostream>
 
+#include <sys/stat.h>
+
 #include "edadb/memory.h"
+
+#include "armcore/armcore.h"
 
 #include "edadb/gen-cpp/EDAdb.h"
 #include <protocol/TBinaryProtocol.h>
@@ -25,6 +29,13 @@ using std::endl;
 class EDAdbHandler : virtual public EDAdbIf {
  public:
   EDAdbHandler() {
+    struct stat crap;
+    if (stat("dbs/default.edb", &crap) == 0) {
+      readFromFile("dbs/default.edb");
+      printf("dbs/default.edb read\n");
+    } else {
+      printf("no default file\n");
+    }
   }
 
   int64_t commitExtents(const std::map<int64_t, std::string>& extentsmap) {
@@ -106,9 +117,16 @@ class EDAdbHandler : virtual public EDAdbIf {
     Memory::Inst()->readFromFile(filename);
   }
 
+  void step() {
+    cout << "that's one small step for ARM..." << endl;
+    ac.step();
+  }
+
   void searchTags(std::set<int64_t>& _return, const std::string& tagname, const std::string& data) {
     Memory::Inst()->searchTags((std::set<uint64_t>&)_return, tagname, data);
   }
+ private:
+  ARMCore ac;
 };
 
 int main(int argc, char** argv) {
@@ -125,6 +143,7 @@ int main(int argc, char** argv) {
                        protocolFactory);
 
   printf("starting the EDAdb...\n");
+  printf("with ARM support\n");
   server.serve();
   printf("exiting...\n");
   return 0;

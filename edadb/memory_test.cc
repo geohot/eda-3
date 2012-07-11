@@ -44,6 +44,15 @@ TEST_F(MemoryTest, FetchExtents) {
   EXPECT_EQ("Bob B", resp[31337]);
 }
 
+TEST_F(MemoryTest, FetchExtentsNullReader) {
+  ExtentsReq req;
+  req.insert(std::make_pair(0xDEAD, 6));
+  ExtentsMap resp;
+  Memory::Inst()->fetchExtents(resp, req, 0, true);
+  string test(6, '\xAA');
+  EXPECT_EQ(test, resp[0xDEAD]);
+}
+
 TEST_F(MemoryTest, FetchExtentsOldChange) {
   ExtentsReq req;
   req.insert(std::make_pair(31337, 6));
