@@ -99,7 +99,9 @@ Viewport.prototype.setSelectedLine = function(addr) {
   if ($('#'+addr).length != 0) {
     this.selectedLine = addr;
     $('#'+this.selectedLine).addClass('line_selected');
-    //p('selected '+shex(addr));
+    p('selected '+shex(addr));
+    // only in ida
+    updateCausedChanges(addr);
   }
   return false;
 };

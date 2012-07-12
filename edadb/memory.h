@@ -69,6 +69,8 @@ class Memory {
   void dumpToFile(const string& filename);
   void readFromFile(const string& filename);
 
+  void trash();
+
  protected:
   Memory();  // Memory is a singleton
  private:

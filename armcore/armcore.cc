@@ -49,16 +49,16 @@ uint64_t ARMCore::step() {
       case COND_VS: cond_good = V; break;
       case COND_VC: cond_good = !V; break;
 
-      case COND_HI: cond_good = C&&!Z; break;
-      case COND_LS: cond_good = !C||Z; break;
-      case COND_GE: cond_good = N==V; break;
-      case COND_LT: cond_good = N!=V; break;
-      case COND_GT: cond_good = !Z||N==V; break;
-      case COND_LE: cond_good = Z||N!=V; break;
+      case COND_HI: cond_good = C && !Z; break;
+      case COND_LS: cond_good = !C || Z; break;
+      case COND_GE: cond_good = N == V; break;
+      case COND_LT: cond_good = N != V; break;
+      case COND_GT: cond_good = !Z && (N==V); break;
+      case COND_LE: cond_good = Z || (N!=V); break;
     }
   }
   
-  printf("has encoding %s\n", encodingsARM[encodingARM]);
+  //printf("has encoding %s\n", encodingsARM[encodingARM]);
 
 if (cond_good == true) {
 // do the processing here
@@ -167,7 +167,7 @@ void ARMCore::doDataProcessing() {
       case OPCODE_SUB:
       case OPCODE_CMP:
         cpsr.C = Rn >= op2;
-        cpsr.V = 0;
+        cpsr.V = Rn < op2;
         break;
       case OPCODE_ADD:
       case OPCODE_CMN:
@@ -233,7 +233,7 @@ void ARMCore::doLoadStore() {
   }
 
   if (in->lsio.L) {
-    set(R(in->generic.Rd), get32(addr), bits);
+    set(R(in->generic.Rd), get(addr, bits), 4);
   } else {
     set(addr, get32(R(in->generic.Rd)), bits);
   }
@@ -323,7 +323,7 @@ uint64_t ARMCore::get(uint64_t addr, int len) {
   // little endian
   for (int i = r.length()-1; i >= 0; i--) {
     ret <<= 8;
-    ret |= r[i] & 0xFF;
+    ret |= ((uint8_t)r[i]) & 0xFF;
   }
   return ret;
 }

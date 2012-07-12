@@ -185,5 +185,11 @@ void Memory::readFromFile(const std::string& filename) {
   printf("done\n");
 }
 
+void Memory::trash() {
+  Memory* replace = new Memory;
+  delete inst_;
+  inst_ = replace;
+}
+
 }  // namespace edadb
 

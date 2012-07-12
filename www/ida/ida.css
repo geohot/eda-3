@@ -27,6 +27,31 @@
   z-index: 10;
 }
 
+#iview {
+  float: left;
+  margin-top: 10px;
+  z-index: 10;
+}
+
+#changelist {
+  border-width: 1px;
+  border-style: solid;
+  border-color: black;
+  width: 150px;
+  height: 200px;
+  font: 12px Courier New;
+}
+
+#changes {
+  width: 100px;
+  z-index: 11;
+  font: 12px Courier New;
+}
+
+.change {
+  z-index: 11;
+}
+
 #registers {
   border-width: 1px;
   border-style: solid;

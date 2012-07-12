@@ -19,14 +19,20 @@ void* server_thread(void* no) {
 class ARMCoreTest : public testing::Test {
  public:
   ARMCoreTest() {
-    pthread_t thread;
-    pthread_create(&thread, NULL, server_thread, NULL);
-    usleep(10000);
   }
  protected:
   virtual void SetUp() {
   }
 };
+
+// hacky ordered shit
+// but that global thing just looked like a bitch
+TEST_F(ARMCoreTest, ServerBringUp) {
+  printf("creating server thread\n");
+  pthread_t thread;
+  pthread_create(&thread, NULL, server_thread, NULL);
+  usleep(10000);
+}
 
 TEST_F(ARMCoreTest, GetAndSet) {
   ARMCore ac;
@@ -177,6 +183,19 @@ TEST_F(ARMCoreTest, STRwriteback) {
   EXPECT_EQ(0xFFFC, ac.get32(R(13)));
 }
 
+TEST_F(ARMCoreTest, MOVLSL) {
+  ARMCore ac;
+  ac.init();
+  ac.set32(R(3), 0x65);
+  ac.set32(R(15), 0x8);
+  ac.set32(0, 0xe1A03803); // mov r3, r3 lsl 0x10
+  ac.done();
+ 
+  ac.step();
+  EXPECT_EQ(0x650000, ac.get32(R(3)));
+
+}
+/*
 TEST_F(ARMCoreTest, SimpleProgram) {
   Memory::Inst()->readFromFile("/Users/geohot/eda-3/armcore/tests/simple/simple.edb");
 
@@ -196,31 +215,63 @@ TEST_F(ARMCoreTest, SimpleProgram) {
   EXPECT_EQ(0x20000, ac.get32(R(14)));
   EXPECT_EQ(0x10000, ac.get32(R(13)));
   EXPECT_EQ(0x1234AABB, ac.get32(R(0)));
-}
+}*/
 
+
+void runELFfile(string elffile);
 
 TEST_F(ARMCoreTest, SimpleProgramWithServer) {
+  runELFfile("~/eda-3/armcore/tests/simple/simple");
+
+// check result of program
+  ARMCore ac;
+  EXPECT_EQ(0x1234AABB, ac.get32(R(0)));
+}
+
+TEST_F(ARMCoreTest, SHA1ProgramWithServer) {
+  runELFfile("~/eda-3/armcore/tests/sha/sha1");
+
+// check result of program
+  ARMCore ac;
+  EXPECT_EQ(0x1234, ac.get32(R(0)));
+
+// chill to let me connect to the server
+  //while(1) { sleep(1); }
+}
+
+void runELFfile(string elffile) {
+  Memory::Inst()->trash();
+  string path = "node ~/eda-3/armcore/tests/elfloader.js "+elffile+"  > /dev/null";
 // upload the elf file
-  system("node ~/eda-3/armcore/tests/elfloader.js ~/eda-3/armcore/tests/simple/simple");
+  system(path.c_str());
+
+// find main and stack
+  set<uint64_t> stackset, mainset;
+  Memory::Inst()->searchTags(stackset, "name", "_stack");
+  Memory::Inst()->searchTags(mainset, "name", "main");
+  EXPECT_EQ(1, stackset.size());
+  EXPECT_EQ(1, mainset.size());
+  uint32_t SPptr, mainptr, LRptr;
+  SPptr = *(stackset.begin());
+  mainptr = *(mainset.begin());
+  LRptr = 0xFA3EFA3E;
 
   ARMCore ac;
   ac.init();
-  ac.set32(R(13), 0x10000);
-  ac.set32(R(14), 0x20000);
-  ac.set32(R(15), 0x8008);
+  ac.set32(R(13), SPptr);
+  ac.set32(R(14), LRptr);
+  ac.set32(R(15), mainptr+8);
   ac.done();
 
   int count = 0;
-  while (ac.get32(R(15)) != 0x20008) {
+  while (ac.get32(R(15)) != (LRptr+8)) {
     ac.step();
     count++;
   }
   
   printf("ran %d instructions\n", count);
 
-  EXPECT_EQ(0x20008, ac.get32(R(15)));
-  EXPECT_EQ(0x20000, ac.get32(R(14)));
-  EXPECT_EQ(0x10000, ac.get32(R(13)));
-  EXPECT_EQ(0x1234AABB, ac.get32(R(0)));
+  EXPECT_EQ(LRptr+8, ac.get32(R(15)));
+  EXPECT_EQ(SPptr, ac.get32(R(13)));
 }
 
