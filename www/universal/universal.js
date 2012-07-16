@@ -16,17 +16,47 @@ require('flat/flat.js');
 
 require('core/core.js');
 
+var leftTab, rightTab;
+
 window.mousedown = function(e) {
   e.preventDefault();
   return false; 
 };
 
+window.onkeydown = function(e) {
+  var atd = rightTab.activeTabData;
+  var keynum = e.which;
+  //p('key: '+keynum);
+  if (atd.dialogBox != null) {
+    if (keynum == KEY_ESC) {
+      atd.dialogDismiss(false);
+    }
+    if (keynum == KEY_ENTER) {
+      atd.dialogDismiss(true);
+    }
+    return;
+  }
+  if (e.ctrlKey) keynum += KEY_CTRL;
+  if (atd.keyBindings[keynum] != null) {
+    atd.keyBindings[keynum](e);
+    return false;
+  }
+};
+
+window.onhashchange = function() {
+  p('hash change');
+  rightTab.activeTabData.focus(fhex(window.location.hash.substr(1)));
+};
+
+
 $(document).ready(function() {
   p("welcome to universal");
-  var leftTab = new TabController($('#lefttabbar')[0], $('#leftcontent'));
-  var rightTab = new TabController($('#righttabbar')[0], $('#rightcontent'));
 
-  leftTab.addTab('core', $('<div id="core"><input type="button" value="step" onclick="idaStep()" /><input type="button" id="until" value="until" onclick="runUntilStart()" /><input type="button" value="stop" onclick="stopRunUntil()" /><br/><input type="button" value="remotestep" onclick="idaRemoteStep()" /><br/><span id="frequency"></span><br/><div id="registers"></div><br/><div id="iview"><select id="changes" size="4"></select><div id="changelist"></div></div></div>'), true);
+  leftTab = new TabController($('#lefttabbar')[0], $('#leftcontent'));
+  rightTab = new TabController($('#righttabbar')[0], $('#rightcontent'));
+
+  leftTab.addTab('core', $('<div id="core"><input type="button" value="step" onclick="idaStep()" /><input type="button" id="until" value="until" onclick="runUntilStart()" /><input type="button" value="stop" onclick="stopRunUntil()" /><br/><input type="button" value="remotestep" onclick="idaRemoteStep()" /><br/><span id="frequency"></span><br/><div id="registers"></div><br/><div id="iview"><select id="changes" size="4"></select><div id="changelist"></div></div></div>'), null, true);
+  initCore('arm');
 
   var mbc = new MoveBarController($('#movebar'), 0x8000, 0x9800, 4);
 
@@ -36,19 +66,19 @@ $(document).ready(function() {
 
   var fc = new FunctionController($('<div id="functions"></div>'));
   fc.render();
-  leftTab.addTab('functions', fc.dom, false);
+  leftTab.addTab('functions', fc.dom, fc, false);
 
   var graphTab = $('<div id="graphviewport"></div>');
-  rightTab.addTab('graph', graphTab, true);
-  view = new IDAViewport($('#graphviewport'));
-  view.registerDefaultHandlers();
-  view.focus(0x8000);
-  initCore('arm');
+  graphview = new IDAViewport(graphTab);
+  graphview.registerDefaultHandlers();
+  rightTab.addTab('graph', graphTab, graphview, true);
+  // focus can only be called when tab is active
+  graphview.focus(0x8000);
 
   var flatviewdom = $('<div id="flatviewport"></div>');
-  rightTab.addTab('flat', flatviewdom,false);
   var flatview = new FlatViewport(flatviewdom, 0x8000, 0x20, 0x8000, 0x100);
   flatview.registerDefaultHandlers();
+  rightTab.addTab('flat', flatviewdom, flatview, false);
 
   // hacky shit
   var hexviewdom = $('<iframe id="hexviewframe" src="/eda/xvi"></iframe>');

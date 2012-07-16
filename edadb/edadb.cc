@@ -7,7 +7,7 @@
 
 #include "edadb/memory.h"
 
-#include "armcore/armcore.h"
+#include "cores/armcore.h"
 
 #include "edadb/gen-cpp/EDAdb.h"
 #include <protocol/TBinaryProtocol.h>

@@ -25,15 +25,16 @@ TabController.prototype.selectTab = function(tab) {
   tab.selected = true;
   tab.dom[0].style.backgroundColor = '#FF4433';
   this.tabSelected = tab;
-}
+  this.activeTabData = tab.data;
+};
 
 TabController.prototype.tabClicked = function(e) {
   e.data[0].selectTab(e.data[1]);
 };
 
-TabController.prototype.addTab = function(name, dom, selected) {
+TabController.prototype.addTab = function(name, dom, data, selected) {
   var ele = $('<div class="tab">'+name+'</div>');
-  var newtab = {name: name, tab: dom, dom: ele, selected: false};
+  var newtab = {name: name, tab: dom, dom: ele, data: data, selected: false};
   ele.click([this, newtab], this.tabClicked);
   this.tabs.push(newtab);
   this.redrawView();

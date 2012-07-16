@@ -10,8 +10,8 @@
 .dialogBox {
   background-color: #CCCCCC;
   position: absolute;
-  left: 100px;
-  top: 100px;
+  left: 40%;
+  top: 200px;
   width: 200px;
   border: ridge;
   border-color: gray;

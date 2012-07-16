@@ -12,6 +12,44 @@ var PC = 0xEDA0003C;
 var instructionsRun = 0;
 var lastInstructionsRun = 0;
 
+
+/* copied from IDA, belongs here */
+
+function idaStep() {
+  doStep();
+  rightTab.activeTabData.focus(getAddr());
+}
+
+function idaRemoteStep() {
+  var req = new XMLHttpRequest();
+  req.open('GET', '/eda/edadb/step.php?n=1', false);
+  req.send(null);
+  db.invalidateDCachePage(0xEDA00000);
+  displayRegisters();
+  rightTab.activeTabData.focus(getAddr());
+}
+
+var untilAddr = null;
+function runUntilStart() {
+  untilAddr = rightTab.activeTabData.selectedLine;
+  $('#until')[0].value = 'until 0x'+shex(untilAddr);
+  runUntil();
+}
+
+function runUntil() {
+  if (untilAddr !== null) {
+    idaStep();
+    if (getAddr() !== untilAddr) {
+      setTimeout(runUntil, 0);
+    } else {
+      $('#until')[0].value = 'until';
+      untilAddr = null;
+    }
+  }
+}
+
+/* end */
+
 function getFrequency() {
   //p( (instructionsRun - lastInstructionsRun) + " hz");
   $('#frequency')[0].innerHTML = (instructionsRun - lastInstructionsRun) + " hz";

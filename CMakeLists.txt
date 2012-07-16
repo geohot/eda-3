@@ -6,7 +6,7 @@ PROJECT(eda3)
 SET(EDADB_SRCS
 ./edadb/byte.cc
 ./edadb/memory.cc
-./armcore/armcore.cc
+./cores/armcore.cc
 ./edadb/edadb.cc
 ./edadb/gen-cpp/EDAdb.cpp
 ./edadb/gen-cpp/edadb_constants.cpp
@@ -33,7 +33,7 @@ if(IS_DIRECTORY "/Users/geohot/devtools/gtest-1.6.0")
   SET(EDADB_TESTS
   ./edadb/byte_test.cc
   ./edadb/memory_test.cc
-  ./armcore/armcore_test.cc
+  ./cores/armcore_test.cc
   )
 
   # hey I just met you

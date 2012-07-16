@@ -8,7 +8,7 @@
 #include "edadb/memory.h"
 using namespace edadb;
 
-#include "armcore/armtemplate.h"
+#include "cores/armtemplate.h"
 
 #define R(x) (0xEDA00000+x*4)
 //#define CR(x) (0xEDA00000+(18+x)*4)

@@ -1,7 +1,7 @@
 // EDA3 - geohot's internal tool of the gods
 // Copyright 2012 George Hotz. All rights reserved.
 
-#include "armcore/armcore.h"
+#include "cores/armcore.h"
 
 #include <iostream>
 #include <map>

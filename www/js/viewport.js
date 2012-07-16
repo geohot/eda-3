@@ -37,25 +37,6 @@ function Viewport(wrapper) {
   this.selectedLine = null;
   this.selectedLocation = null;
 
-  window.onkeydown = function(e) {
-    var keynum = e.which;
-    //p('key: '+keynum);
-    if (this.dialogBox != null) {
-      if (keynum == KEY_ESC) {
-        this.dialogDismiss(false);
-      }
-      if (keynum == KEY_ENTER) {
-        this.dialogDismiss(true);
-      }
-      return;
-    }
-    if (e.ctrlKey) keynum += KEY_CTRL;
-    if (this.keyBindings[keynum] != null) {
-      this.keyBindings[keynum](e);
-      return false;
-    }
-  }.bind(this);
-
   var handleWithBindings = function(e, bindings) {
     var node = e.target;
     while (node && node.className != 'viewport') {
@@ -245,7 +226,6 @@ Viewport.prototype.registerDblClickHandler = function(classnames, fxn) {
     this.dblClickBindings[classes[i]] = fxn;
   }
 };
-
 
 Viewport.prototype.dialogDismiss = function(do_callback) {
   var box = $(this.dialogBox);

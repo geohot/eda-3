@@ -11,24 +11,9 @@ var view;
 var gbox;
 var miniscale;
 
-
 function stopRunUntil() {
   $('#until')[0].value = 'until';
   untilAddr = null;
-}
-
-function idaStep() {
-  doStep();
-  view.focus(getAddr());
-}
-
-function idaRemoteStep() {
-  var req = new XMLHttpRequest();
-  req.open('GET', '/eda/edadb/step.php?n=1', false);
-  req.send(null);
-  db.invalidateDCachePage(0xEDA00000);
-  displayRegisters();
-  view.focus(getAddr());
 }
 
 function clickChange(change) {
@@ -100,25 +85,6 @@ function updateCausedChanges(addr) {
 }
 
 
-var untilAddr = null;
-function runUntilStart() {
-  untilAddr = view.selectedLine;
-  $('#until')[0].value = 'until 0x'+shex(untilAddr);
-  runUntil();
-}
-
-function runUntil() {
-  if (untilAddr !== null) {
-    idaStep();
-    if (getAddr() !== untilAddr) {
-      setTimeout(runUntil, 0);
-    } else {
-      $('#until')[0].value = 'until';
-      untilAddr = null;
-    }
-  }
-}
-
 function IDAViewport(wrapper) {
   Viewport.call(this, wrapper);
 
@@ -130,10 +96,12 @@ function IDAViewport(wrapper) {
 
   this.wrapper = wrapper;
 
-  wrapper.prepend($('<div class="minimap" id="minimap"><canvas id="minicanvas" width=0 height=0></canvas><canvas id="miniframe" width=0 height=0></canvas></div>'));
+  var creatingMinimap = $('<div class="minimap" id="minimap"><canvas id="minicanvas" width=0 height=0></canvas><canvas id="miniframe" width=0 height=0></canvas></div>');
 
-  this.minimap = $('#minimap')[0];
-  this.miniframe = $('#miniframe')[0];
+  wrapper.prepend(creatingMinimap);
+
+  this.minimap = creatingMinimap[0];
+  this.miniframe = creatingMinimap.children('#miniframe')[0];
   this.miniframectx = this.miniframe.getContext("2d");
 
   wrapper[0].onmousedown = function(e) {
@@ -189,11 +157,6 @@ function IDAViewport(wrapper) {
 IDAViewport.prototype = new Viewport();
 IDAViewport.prototype.constructor = IDAViewport;
 IDAViewport.prototype.parent = Viewport;
-
-window.onhashchange = function() {
-  p('hash change');
-  view.focus(fhex(window.location.hash.substr(1)));
-}
 
 IDAViewport.prototype.scrollTo = function(x, y) {
   //p('scrollto '+x+'  '+y);
@@ -266,7 +229,7 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
 
   this.focused = addr;
 
-  this.g = new Graph();
+  this.g = new Graph(this);
   this.dom[0].innerHTML = "";
 
   var bblocks = {};
@@ -386,9 +349,10 @@ IDAViewport.prototype.isAddressInFunction = function(addr) {
 // vertices are the first address in the basic block
 // edges are the two addresses + direction + color
 // size doesn't matter for the graph layout algo...i think
-function Graph() {
+function Graph(graphview) {
   this.vertices = {};
   this.edges = [];
+  this.graphview = graphview;
 }
 
 
@@ -513,8 +477,8 @@ Graph.prototype.render = function() {
 
   gbox = document.createElement('div');
   gbox.id = 'gbox';
-  view.dom[0].innerHTML = ""; // what a hack...
-  view.dom[0].appendChild(gbox);
+  this.graphview.dom[0].innerHTML = ""; // what a hack...
+  this.graphview.dom[0].appendChild(gbox);
 
   for (saddr in this.vertices) {
     var addr = fnum(saddr);
@@ -696,7 +660,7 @@ Graph.prototype.placeBoxes = function() {
     tablerow.appendChild(tableshit);
     datable.appendChild(tablerow);
   }
-  view.dom[0].appendChild(datable);
+  this.graphview.dom[0].appendChild(datable);
 };
 
 // returns DOM object containing the vertex

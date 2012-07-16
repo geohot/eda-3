@@ -4,7 +4,7 @@
 #include "edadb/memory.h"
 #include "gtest/gtest.h"
 
-#include "armcore/armcore.h"
+#include "cores/armcore.h"
 
 #include <pthread.h>
 
@@ -22,6 +22,10 @@ class ARMCoreTest : public testing::Test {
   }
  protected:
   virtual void SetUp() {
+    ARMCore ac;
+    ac.init();
+    ac.set32(R(REG_CPSR), 0);
+    ac.done();
   }
 };
 
@@ -221,7 +225,7 @@ TEST_F(ARMCoreTest, SimpleProgram) {
 void runELFfile(string elffile);
 
 TEST_F(ARMCoreTest, SimpleProgramWithServer) {
-  runELFfile("~/eda-3/armcore/tests/simple/simple");
+  runELFfile("~/eda-3/cores/tests/simple/simple");
 
 // check result of program
   ARMCore ac;
@@ -229,7 +233,7 @@ TEST_F(ARMCoreTest, SimpleProgramWithServer) {
 }
 
 TEST_F(ARMCoreTest, SHA1ProgramWithServer) {
-  runELFfile("~/eda-3/armcore/tests/sha/sha1");
+  runELFfile("~/eda-3/cores/tests/sha/sha1");
 
 // check result of program
   ARMCore ac;
@@ -240,7 +244,7 @@ TEST_F(ARMCoreTest, SHA1ProgramWithServer) {
 }
 
 TEST_F(ARMCoreTest, HelloWorldProgramWithServer) {
-  runELFfile("~/eda-3/armcore/tests/helloworld/helloworld");
+  runELFfile("~/eda-3/cores/tests/helloworld/helloworld");
 
 // check result of program
   ARMCore ac;
@@ -252,7 +256,7 @@ TEST_F(ARMCoreTest, HelloWorldProgramWithServer) {
 
 void runELFfile(string elffile) {
   Memory::Inst()->trash();
-  string path = "node ~/eda-3/armcore/tests/elfloader.js "+elffile+"  > /dev/null";
+  string path = "node ~/eda-3/cores/tests/elfloader.js "+elffile+"  > /dev/null";
 // upload the elf file
   system(path.c_str());
 
@@ -276,6 +280,7 @@ void runELFfile(string elffile) {
   ac.set32(R(13), SPptr);
   ac.set32(R(14), LRptr);
   ac.set32(R(15), mainptr+8);
+  ac.set32(R(REG_CPSR), 0);
   ac.done();
 
   int count = 0;
@@ -287,7 +292,7 @@ void runELFfile(string elffile) {
   printf("ran %d instructions\n", count);
 
   if (ac.error) {
-    printf("hit error(or exit), skipping next tests\n");
+    printf("hit error(or exit), skipping LR and SP tests\n");
   } else {
     EXPECT_EQ(LRptr+8, ac.get32(R(15)));
     EXPECT_EQ(SPptr, ac.get32(R(13)));
