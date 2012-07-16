@@ -64,6 +64,8 @@ class Memory {
   void setTag(uint64_t addr, const string& tagname, const string& data);
   void getTags(TagsObject& _return, uint64_t addr) const;
 
+  string getTag(uint64_t addr, const string& tagname);
+
   void allTagsWithName(map<uint64_t, string>& addr, const string& tagname);
   void searchTags(set<uint64_t>& addr, const string& tagname, const string& data);
 

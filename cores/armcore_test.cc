@@ -265,7 +265,7 @@ void runELFfile(string elffile) {
   Memory::Inst()->searchTags(stackset, "name", "_stack");
   Memory::Inst()->searchTags(mainset, "name", "_start");
   if (mainset.size() == 0) {
-    printf("no start\n");
+    printf("no start, using main\n");
     Memory::Inst()->searchTags(mainset, "name", "main");
   }
   EXPECT_EQ(1, stackset.size());

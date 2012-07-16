@@ -9,9 +9,7 @@ using namespace edadb;
 
 class Core {
  public:
-  Core() {
-    error = false;
-  }
+  Core();
 
 // really shouldn't be public
 // done for testing, though black box step tests would be much better
@@ -39,6 +37,31 @@ class Core {
   bool error;
  private:
   ExtentsMap commit;
+};
+
+// MMIO shit is part of core
+#include <v8.h>
+using namespace v8;
+
+class MMIO {
+ public:
+  static MMIO* Inst();
+  Handle<Value> exec(string src);
+  uint64_t execr(string src);
+  void execw(string src, uint64_t data, int len);
+
+  void setCore(Core* core);
+ protected:
+  MMIO();
+ private:
+  static MMIO* inst_;
+  static Core* core_;
+  HandleScope handle_scope;
+  Handle<ObjectTemplate> global;
+
+// extra shit
+  static Handle<Value> GetCallback(const Arguments&);
+  static Handle<Value> SetCallback(const Arguments&);
 };
 
 #endif  // EDA_CORE_H

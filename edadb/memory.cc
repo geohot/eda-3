@@ -152,6 +152,17 @@ void Memory::getTags(TagsObject& _return, uint64_t addr) const {
   }
 }
 
+string Memory::getTag(uint64_t addr, const string& tagname) {
+  map<uint64_t, TagsObject>::const_iterator iter = memory_tags_.find(addr);
+  if (iter != memory_tags_.end()) {
+    map<string, string>::const_iterator titer = iter->second.find(tagname);
+    if (titer != iter->second.end()) {
+      return titer->second;
+    }
+  }
+  return "";
+}
+
 void Memory::allTagsWithName(map<uint64_t, string>& addr, const string& tagname) {
   map<string, map<uint64_t, string> >::iterator iter = memory_reverse_tagnames_.find(tagname);
   if (iter != memory_reverse_tagnames_.end()) {
