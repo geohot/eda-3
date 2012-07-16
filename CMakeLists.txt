@@ -6,6 +6,7 @@ PROJECT(eda3)
 SET(EDADB_SRCS
 ./edadb/byte.cc
 ./edadb/memory.cc
+./cores/core.cc
 ./cores/armcore.cc
 ./edadb/edadb.cc
 ./edadb/gen-cpp/EDAdb.cpp

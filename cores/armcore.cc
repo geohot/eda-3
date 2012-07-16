@@ -342,38 +342,6 @@ void ARMCore::doBranches() {
   set32(R(REG_PC), SignExtend(in->bbl.offset<<2, 26)+8+PC);
 }
 
-
-// ***really generic core shit***
-
-// set32, set16, and set8 defined in header
-void ARMCore::set(uint64_t addr, uint64_t data, int len) {
-  // like write this bro
-  string r = "";
-  for (int i = 0; i < len; i++) {
-    r.push_back(data&0xFF);
-    data >>= 8;
-  }
-
-  commit.insert(make_pair(addr, r));
-}
-
-// get32, get16, and get8 defined in header
-uint64_t ARMCore::get(uint64_t addr, int len) {
-  ExtentsReq req;
-  ExtentsMap resp;
-  req.insert(make_pair(addr, len));
-  Memory::Inst()->fetchExtents(resp, req, 0, true);
-
-  string r = resp[addr];
-  uint64_t ret = 0;
-  // little endian
-  for (int i = r.length()-1; i >= 0; i--) {
-    ret <<= 8;
-    ret |= ((uint8_t)r[i]) & 0xFF;
-  }
-  return ret;
-}
-
 namespace ARMInstruction {
 
 int getEncodingARM(uint32_t opcode) {
@@ -418,3 +386,4 @@ int getEncodingARM(uint32_t opcode) {
 }
 
 }
+
