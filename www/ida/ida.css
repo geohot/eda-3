@@ -5,7 +5,6 @@
 /* graph block */
 .gblock {
   position: absolute;
-  display: inline-block;
   border: solid;
   border-color: black;
   border-width: 1px;
@@ -14,6 +13,10 @@
   padding-bottom: 2px;
   padding-left: 4px;
   padding-right: 4px;
+}
+
+#gbox {
+  position: relative;
 }
 
 #frequency {
@@ -40,6 +43,7 @@
   width: 150px;
   height: 200px;
   font: 12px Courier New;
+  background-color: white;
 }
 
 #changes {
@@ -81,8 +85,8 @@
   border: solid;
   border-color: black;
   border-width: 1px;
-  padding: 5px;
-  margin: 5px;
+  padding: 5px 5px 5px 5px;
+  margin: 5px 5px 5px 5px;
   display: inline-block;
   float: right;
 }
@@ -114,10 +118,12 @@
   padding-left: 30px;
 }
 
-body {
-  /*background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#E0F8FF));*/
+#graphviewport {
   background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#FFF8E0));
   overflow: hidden;
+  height: 100%;
+  width: 100%;
+  width: 100%;
 }
 
 

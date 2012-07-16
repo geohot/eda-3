@@ -1,5 +1,104 @@
 
 body {
+  padding-top: 30px;
+  padding-bottom: 75px;
+  margin: 0px;
+  position: relative;
+  overflow: hidden;
+}
+
+#hexviewframe {
+  width: 100%;
+  height: 100%;
+  overflow: none;
+  border: none;
+}
+
+#movebarholder {
+  position: absolute;
+  top: 0px;
+  height: 30px;
+  width: 100%;
+}
+
+#panels {
+  height: 100%;
+  width: 100%;
+}
+
+#consoleholder {
+  position: absolute;
+  bottom: 0px;
+  height: 50px;
+  border-width: 5px 0px 0px 0px;
+  border-style: ridge;
+  width: 100%;
+}
+
+#console {
+  height: 100%;
+  width: 100%;
+  background-color: #EEEEEE;
+  padding: 2px;
+}
+
+.consolestatement {
+  font: 12px Courier New;
+}
+
+.consoleprompt {
+  font: 12px Courier New;
+  color: blue;
+}  
+
+#movebar {
+  height: 100%;
+  width: 100%;
+  background-color: #FFF8E0;
+}
+
+.tabbar {
+  border-width: 1px 0px 1px 0px;
+  border-style: solid;
+  border-color: black;
+  height: 20px;
+  background-color: gray;
+  width: 100%;
+}
+
+#leftpanel {
+  width: 20%;
+}
+
+#rightpanel {
+  width: 80%;
+}
+
+#functions {
+  margin: 5px;
+  overflow: auto;
+}
+
+.panel {
+  float: left;
+  height: 100%;
+}
+
+#leftcontentholder {
+  border-width: 0px 5px 0px 0px;
+  border-style: ridge;
+}
+
+.contentholder {
+  height: 100%;
+}
+
+.content {
+  width: 100%;
+  height: 100%;
+}
+
+.graphView {
   background: -webkit-gradient(linear, left top, left bottom, from(#ffffff), to(#FFF8E0));
   overflow: hidden;
 }

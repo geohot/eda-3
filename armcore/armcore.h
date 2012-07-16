@@ -26,6 +26,7 @@ using namespace edadb;
 class ARMCore {
  public:
   ARMCore() {
+    error = false;
   }
   uint64_t step();
 
@@ -51,6 +52,8 @@ class ARMCore {
   void set8(uint64_t addr, uint8_t data) { return set(addr, data, 1); }
   void set(uint64_t addr, uint64_t data, int len);
 
+  bool error;
+
  private:
   void doDataProcessing();
   void doLoadStore();
@@ -58,6 +61,7 @@ class ARMCore {
   void doMiscellaneous();
   void doBranches();
   void doCoprocessor();
+  void doSoftwareInterrupt();
   ExtentsMap commit;
   uint32_t opcode;
   templateInstructionARM *in;

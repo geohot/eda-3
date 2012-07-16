@@ -29,6 +29,21 @@
 <div id="viewporthtmlwrapper">
 </div>
 <script src="ida.js"></script>
+<script>
+$(document).ready(function() {
+  view = new IDAViewport($('#viewporthtmlwrapper'));
+  view.registerDefaultHandlers();
+  //view.focus(0x50DC);
+  if (window.location.hash == "") {
+    view.focus(0);
+  } else {
+    view.focus(fhex(window.location.hash.substr(1)));
+  }
+
+  // err hacky, not always arm
+  initCore('arm');
+});
+</script>
 </body>
 </html>
 

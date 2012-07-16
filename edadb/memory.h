@@ -64,6 +64,7 @@ class Memory {
   void setTag(uint64_t addr, const string& tagname, const string& data);
   void getTags(TagsObject& _return, uint64_t addr) const;
 
+  void allTagsWithName(map<uint64_t, string>& addr, const string& tagname);
   void searchTags(set<uint64_t>& addr, const string& tagname, const string& data);
 
   void dumpToFile(const string& filename);
@@ -84,6 +85,7 @@ class Memory {
     ar & history_read_;
     ar & nullbyte_;
     ar & memory_reverse_tags_;
+    ar & memory_reverse_tagnames_;
   }
 
   map<uint64_t, Byte*> memory_;
@@ -92,6 +94,7 @@ class Memory {
 // storage for the memory metadata
   map<uint64_t, TagsObject> memory_tags_;
   map<pair<string, string>, set<uint64_t> > memory_reverse_tags_;
+  map<string, map<uint64_t, string> > memory_reverse_tagnames_;
 
 // this tracks all the changelists
   vector<ExtentsMap> history_written_;

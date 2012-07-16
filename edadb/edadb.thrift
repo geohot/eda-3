@@ -52,8 +52,10 @@ service EDAdb {
   void dumpToFile(1:string filename),
   void readFromFile(1:string filename),
 
-  void step(),
+  void step(1:i64 stepcount),
 
   set<i64> searchTags(1:string tagname, 2:string data),
+
+  map<i64, string> allTagsWithName(1:string tagname),
 }
 

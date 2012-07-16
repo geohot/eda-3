@@ -3,8 +3,11 @@
 
 #include "armcore/armcore.h"
 
+#include <iostream>
 #include <map>
 using std::make_pair;
+using std::cout;
+using std::endl;
 
 #define lsl(x, a) (x<<a)
 #define lsr(x, a) (x>>a)
@@ -30,11 +33,16 @@ uint64_t ARMCore::step() {
   opcode = get32(PC-8);
   encodingARM = ARMInstruction::getEncodingARM(opcode);
   in = (templateInstructionARM *)&opcode;
+  templateRegisterCPSR cpsr;
+  cpsr.cpsr = get32(R(REG_CPSR));
+// check for thumb
+  if (cpsr.T) {
+    printf("thumb not implemented\n");
+    return done();
+  }
 // check the condition
   bool cond_good = true;
   if (in->generic.cond != 0xE) {
-    templateRegisterCPSR cpsr;
-    cpsr.cpsr = get32(R(REG_CPSR));
     bool N = cpsr.N;
     bool Z = cpsr.Z;
     bool C = cpsr.C;
@@ -83,9 +91,7 @@ if (cond_good == true) {
     case ARM_CRT: //Coprocessor register transfers
       doCoprocessor(); break;
     case ARM_SWI: //Software interrupt
-      set32(R(REG_PC), PC+4);
-      printf("not implemented\n");
-      break;
+      doSoftwareInterrupt(); break;
     default:
       printf("unknown instruction %8.8X\n", opcode);
   }
@@ -97,16 +103,44 @@ if (cond_good == true) {
   return done();
 }
 
+#define SYS_WRITE 5
+#define SYS_EXIT 0x18
+
+void ARMCore::doSoftwareInterrupt() {
+  set32(R(REG_PC), PC+4);
+  uint32_t R0 = get32(R(0));
+  uint32_t R1 = get32(R(1));
+  uint32_t swi = in->swi.swi_number;
+  printf("SWI %X @ %X --  R0: %X  R1: %X\n", swi, PC-8, R0, R1);
+  if (swi == 0x123456) {
+    if (R0 == SYS_WRITE) {
+      uint32_t fs = get32(R1+0);
+      uint32_t buf = get32(R1+4);
+      uint32_t count = get32(R1+8);
+      printf("  SYS_WRITE(%X,%X,%X): ", fs, buf, count);
+      ExtentsReq req;
+      ExtentsMap resp;
+      req.insert(make_pair(buf, count));
+      Memory::Inst()->fetchExtents(resp, req, 0, true);
+      cout << resp[buf] << endl;
+    }
+    if (R0 == SYS_EXIT) {
+      error = true;
+    }
+    set32(R(0), 0);
+  }
+}
+
 void ARMCore::doCoprocessor() {
   switch (encodingARM) {
     case ARM_CLS:
-      printf("not implemented\n");
+      printf("CLS: not implemented\n");
       break;
     case ARM_CDP:
-      printf("not implemented\n");
+      printf("CDP: not implemented\n");
       break;
     case ARM_CRT:
-      printf("not implemented\n");
+      printf("CRT: not implemented\n");
       // this imp is so wrong
       /*if (in->crt.L) {
         set32(R(in->crt.Rd), get32(CR(in->crt.cp_num)));
@@ -184,7 +218,7 @@ void ARMCore::doDataProcessing() {
     set32(R(REG_PC), PC+4);
   }
 
-  if (in->dpi.opcode < OPCODE_CMP || in->dpi.opcode > OPCODE_CMN) {
+  if (in->dpi.opcode < OPCODE_TST || in->dpi.opcode > OPCODE_CMN) {
     set32(R(in->generic.Rd), Rd);
   }
 }
@@ -233,7 +267,11 @@ void ARMCore::doLoadStore() {
   }
 
   if (in->lsio.L) {
-    set(R(in->generic.Rd), get(addr, bits), 4);
+    if (in->generic.Rd == REG_PC) {
+      set(R(in->generic.Rd), get(addr, bits)+8, 4);
+    } else {
+      set(R(in->generic.Rd), get(addr, bits), 4);
+    }
   } else {
     set(addr, get32(R(in->generic.Rd)), bits);
   }
@@ -272,7 +310,7 @@ void ARMCore::doLoadStoreMultiple() {
 
   if (in->lsm.W) set32(R(in->lsm.Rn), addr);
 
-  if (!(in->lsm.register_list & 0x8000)) {
+  if (!(in->lsm.register_list & 0x8000) || !in->lsm.L) {
     set32(R(REG_PC), PC+4);
   }
 }
@@ -282,7 +320,15 @@ void ARMCore::doMiscellaneous() {
     if (opcode & 0x20) {
       set32(R(REG_LR), PC-4);
     }
-    set32(R(REG_PC), get32(R(in->generic.Rm))+8);
+    uint32_t target = get32(R(in->generic.Rm));
+    if (target&1) {
+      // switch to thumb
+      templateRegisterCPSR cpsr;
+      cpsr.cpsr = get32(R(REG_CPSR));
+      cpsr.T = 1;
+      set32(R(REG_CPSR), cpsr.cpsr);
+    }
+    set32(R(REG_PC), target+8);
   } else {
     set32(R(REG_PC), PC+4);
   }

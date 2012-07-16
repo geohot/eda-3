@@ -239,6 +239,17 @@ TEST_F(ARMCoreTest, SHA1ProgramWithServer) {
   //while(1) { sleep(1); }
 }
 
+TEST_F(ARMCoreTest, HelloWorldProgramWithServer) {
+  runELFfile("~/eda-3/armcore/tests/helloworld/helloworld");
+
+// check result of program
+  ARMCore ac;
+  EXPECT_EQ(0, ac.get32(R(0)));
+
+// chill to let me connect to the server
+  //while(1) { sleep(1); }
+}
+
 void runELFfile(string elffile) {
   Memory::Inst()->trash();
   string path = "node ~/eda-3/armcore/tests/elfloader.js "+elffile+"  > /dev/null";
@@ -248,7 +259,11 @@ void runELFfile(string elffile) {
 // find main and stack
   set<uint64_t> stackset, mainset;
   Memory::Inst()->searchTags(stackset, "name", "_stack");
-  Memory::Inst()->searchTags(mainset, "name", "main");
+  Memory::Inst()->searchTags(mainset, "name", "_start");
+  if (mainset.size() == 0) {
+    printf("no start\n");
+    Memory::Inst()->searchTags(mainset, "name", "main");
+  }
   EXPECT_EQ(1, stackset.size());
   EXPECT_EQ(1, mainset.size());
   uint32_t SPptr, mainptr, LRptr;
@@ -264,14 +279,18 @@ void runELFfile(string elffile) {
   ac.done();
 
   int count = 0;
-  while (ac.get32(R(15)) != (LRptr+8)) {
+  while (ac.get32(R(15)) != (LRptr+8) && count < 40000 && ac.error == false) {
     ac.step();
     count++;
   }
   
   printf("ran %d instructions\n", count);
 
-  EXPECT_EQ(LRptr+8, ac.get32(R(15)));
-  EXPECT_EQ(SPptr, ac.get32(R(13)));
+  if (ac.error) {
+    printf("hit error(or exit), skipping next tests\n");
+  } else {
+    EXPECT_EQ(LRptr+8, ac.get32(R(15)));
+    EXPECT_EQ(SPptr, ac.get32(R(13)));
+  }
 }
 

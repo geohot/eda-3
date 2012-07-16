@@ -4,13 +4,6 @@
 require('js/db.js');
 require('js/viewport.js');
 
-$(document).ready(function() {
-  view = new FlatViewport($('#viewporthtmlwrapper'), 0x67A, 0x20, 0, 0x10000);
-  view.registerDefaultHandlers();
-  window.unload = function() { alert("unloading"); };
-
-});
-
 function FlatViewport(wrapper, addr, linecount, maxaddr, maxlen) {
   Viewport.call(this, wrapper);
   this.viewLines = linecount;

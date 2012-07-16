@@ -13,6 +13,13 @@
 <div id="viewporthtmlwrapper">
 </div>
 <script src="flat.js"></script>
+<script>
+$(document).ready(function() {
+  view = new FlatViewport($('#viewporthtmlwrapper'), 0x8000, 0x20, 0x8000, 0x1000);
+  view.registerDefaultHandlers();
+  window.unload = function() { alert("unloading"); };
+});
+</script>
 </body>
 </html>
 

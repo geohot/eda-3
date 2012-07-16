@@ -23,6 +23,13 @@ if (typeof window !== 'undefined') {
   }
 }
 
+function xx(url) {
+  var req = new XMLHttpRequest();
+  req.open('GET', url, false);
+  req.send(null);
+  return jQuery.parseJSON(req.response);
+}
+
 function p(printme) {
   console.log(printme);
 }

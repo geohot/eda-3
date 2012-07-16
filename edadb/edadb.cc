@@ -117,13 +117,17 @@ class EDAdbHandler : virtual public EDAdbIf {
     Memory::Inst()->readFromFile(filename);
   }
 
-  void step() {
+  void step(int64_t stepcount) {
     cout << "that's one small step for ARM..." << endl;
-    ac.step();
+    for (int64_t i = 0; i < stepcount; i++)
+      ac.step();
   }
 
   void searchTags(std::set<int64_t>& _return, const std::string& tagname, const std::string& data) {
     Memory::Inst()->searchTags((std::set<uint64_t>&)_return, tagname, data);
+  }
+  void allTagsWithName(std::map<int64_t, string>& _return, const std::string& tagname) {
+    Memory::Inst()->allTagsWithName((std::map<uint64_t,string>&)_return, tagname);
   }
  private:
   ARMCore ac;

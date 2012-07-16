@@ -11,19 +11,6 @@ var view;
 var gbox;
 var miniscale;
 
-$(document).ready(function() {
-  view = new IDAViewport($('#viewporthtmlwrapper'));
-  view.registerDefaultHandlers();
-  //view.focus(0x50DC);
-  if (window.location.hash == "") {
-    view.focus(0);
-  } else {
-    view.focus(fhex(window.location.hash.substr(1)));
-  }
-
-  // err hacky, not always arm
-  initCore('arm');
-});
 
 function stopRunUntil() {
   $('#until')[0].value = 'until';
@@ -37,7 +24,7 @@ function idaStep() {
 
 function idaRemoteStep() {
   var req = new XMLHttpRequest();
-  req.open('GET', '/eda/edadb/step.php', false);
+  req.open('GET', '/eda/edadb/step.php?n=1', false);
   req.send(null);
   db.invalidateDCachePage(0xEDA00000);
   displayRegisters();
@@ -141,11 +128,15 @@ function IDAViewport(wrapper) {
   this.positions = {};
   this.focused = null;
 
+  this.wrapper = wrapper;
+
+  wrapper.prepend($('<div class="minimap" id="minimap"><canvas id="minicanvas" width=0 height=0></canvas><canvas id="miniframe" width=0 height=0></canvas></div>'));
+
   this.minimap = $('#minimap')[0];
   this.miniframe = $('#miniframe')[0];
   this.miniframectx = this.miniframe.getContext("2d");
 
-  window.onmousedown = function(e) {
+  wrapper[0].onmousedown = function(e) {
     isDown = true;
     basex = e.x - fnum(gbox.style.left);
     basey = e.y - fnum(gbox.style.top);
@@ -156,17 +147,21 @@ function IDAViewport(wrapper) {
       return false;
   }.bind(this);
 
-  window.onmouseup = function(e) {
+  wrapper[0].onmouseup = function(e) {
     isDown = false;
   };
 
-  window.onmousemove = function(e) {
+  wrapper[0].onmouseout = function(e) {
+    isDown = false;
+  };
+
+  wrapper[0].onmousemove = function(e) {
     if (isDown && !minidown) {
       this.scrollTo(e.x-basex, e.y-basey);
     }
   }.bind(this);
 
-  window.onmousewheel = function(e) {
+  wrapper[0].onmousewheel = function(e) {
     this.scrollTo(e.wheelDeltaX + fnum(gbox.style.left),
                   e.wheelDeltaY + fnum(gbox.style.top));
   }.bind(this);
@@ -176,7 +171,7 @@ function IDAViewport(wrapper) {
     //p(e);
     var x = (e.offsetX - 5)*miniscale*-1;
     var y = (e.offsetY - 5)*miniscale*-1;
-    this.scrollTo(x+(window.innerWidth/2), y+(window.innerHeight/2));
+    this.scrollTo(x+(wrapper[0].offsetWidth/2), y+(wrapper[0].offsetHeight/2));
     minidown = true;
   }.bind(this);
 
@@ -184,7 +179,7 @@ function IDAViewport(wrapper) {
     if (minidown == true) {
       var x = (e.offsetX - 5)*miniscale*-1;
       var y = (e.offsetY - 5)*miniscale*-1;
-      this.scrollTo(x+(window.innerWidth/2), y+(window.innerHeight/2));
+      this.scrollTo(x+(wrapper[0].offsetWidth/2), y+(wrapper[0].offsetHeight/2));
     }
   }.bind(this);
 
@@ -201,9 +196,10 @@ window.onhashchange = function() {
 }
 
 IDAViewport.prototype.scrollTo = function(x, y) {
+  //p('scrollto '+x+'  '+y);
   var mctx = this.miniframectx;
-  var w = window.innerWidth;
-  var h = window.innerHeight;
+  var w = this.wrapper[0].offsetWidth;
+  var h = this.wrapper[0].offsetHeight;
   var t = y*-1;
   var l = x*-1;
   this.miniframe.width = this.miniframe.width;
@@ -244,16 +240,17 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
 
     var basex = 0 - fnum(gbox.style.left);
     var basey = 0 - fnum(gbox.style.top);
-    var basew = window.innerWidth;
-    var baseh = window.innerHeight;
+    var basew = this.wrapper[0].offsetWidth;
+    var baseh = this.wrapper[0].offsetHeight;
 
     if ( (x < basex) || (y < basey) || (x > (basex+basew)) || (y > (basey+baseh)) ) {
       p('not in window '+basex+' '+basey+' '+(basex+basew)+' '+(basey+baseh));
       p('yo '+x+' '+y);
       x *= -1;
       y *= -1;
-      x += window.innerWidth/2;
-      y += window.innerHeight/2;
+      // over 2 was overkill
+      x += basew/4;
+      y += baseh/4;
       this.scrollTo(x,y);
     }
     return false;
@@ -357,6 +354,12 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
     if (this.g.vertices[a].children.length == 0) {
       var ta = get_bblock_start(a+bblocks[a]);
       if (ta !== null) {
+        // hack for arm/thumb
+        // no easy way to get the last whole thing in a bblock
+        var flow = db.tags(ta-2)['flow'];
+        if (flow != null && flow.indexOf('R') != -1) continue;
+        var flow = db.tags(ta-4)['flow'];
+        if (flow != null && flow.indexOf('R') != -1) continue;
         this.g.addEdge(a, ta, 'blue');
       }
     }
@@ -556,7 +559,8 @@ Graph.prototype.render = function() {
   gbox.style.width = fnum(gdata[2])+10;
   gbox.style.height = fnum(gdata[3])+10;
 
-  gbox.style.position = "absolute";
+
+  // gbox absolute isn't good
   gbox.style.left = "50";
   gbox.style.top = "50";
 

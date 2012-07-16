@@ -122,9 +122,24 @@ Viewport.prototype.setSelectedLocation = function(ele) {
 Viewport.prototype.registerDefaultHandlers = function() {
   this.registerKeyHandler(asc('G'), function() {
     this.dialog("Jump to address", function(data) {
-      var addr = fhex(data);
-      if (addr != NaN) {
-        this.focus(addr);
+      var isname = false;
+      // can be a name, check
+      for (var i=0; i<data.length; i++) {
+        if ('0123456789abcdefABCDEF'.indexOf(data.substr(i, 1)) == -1) {
+          isname = true;
+          break;
+        }
+      }
+      if (isname == true) {
+        var findings = db.search('name', data);
+        if (findings.length > 0) {
+          this.focus(findings[0]);
+        }
+      } else {
+        var addr = fhex(data);
+        if (addr != NaN) {
+          this.focus(addr);
+        }
       }
     }.bind(this));
   }.bind(this));
