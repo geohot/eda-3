@@ -20,11 +20,15 @@ function l(d, depth) {
 $(document).ready(function() {
   lbox = $('#output')[0];
   l('welcome to static analyzer');
+  l('drag and drop .idc files here');
+  $('#output')[0].addEventListener("drop", handleIDCDrop, false);
 });
 
+/* globals */
 var rawdata;
 var rangestart;
 var rangelength;
+var staticstart;
 
 var going = false;
 
@@ -34,25 +38,129 @@ var tagsList = {};
 var calls = [];
 
 var iset;
+var depth;
 
-function go() {
+// objects are shitty hash maps
+var seen;
+var stack = [];
+var fi = [];
+var s_addr, s_start;
+
+/* done */
+
+function handleIDCDrop(e) {
+  init();
+
+  e.stopPropagation();
+  e.preventDefault();
+  if (e.dataTransfer.files.length > 0) {
+    var file = e.dataTransfer.files[0];
+    if (file.name.substr(file.name.length -4) == ".idc") {
+      l('reading file '+file.name);
+      var reader = new FileReader();
+      reader.onloadend = handleIDC;
+      reader.readAsText(file);
+    } else {
+      l('not an idc file');
+    }
+  }
+}
+
+var idc;
+
+function handleIDC(e) {
+  idc = e.target.result.split("\n");
+  for (var i = 0; i < idc.length; i++) {
+  //for (var i = 0; i < 400; i++) {
+    if (idc[i].indexOf('MakeCode') !== -1) { eval(idc[i]); }
+    if (idc[i].indexOf('MakeRptCmt') !== -1) { eval(idc[i]); }
+    if (idc[i].indexOf('MakeFunction') !== -1) { eval(idc[i]); }
+    if (idc[i].indexOf('MakeName') !== -1) { eval(idc[i]); }
+    if (idc[i].indexOf('MakeByte') !== -1) { eval(idc[i]); }
+    if (idc[i].indexOf('MakeDword') !== -1) { eval(idc[i]); }
+  }
+  l('done with phase 1');
+  //do_resume();
+  analyze_subfunction();
+  upload_tags_to_server();
+}
+
+/* idc parsing functions */
+
+function MakeCode(addr) {
+  var inst = parseInstruction(addr, rawdata.subarray(addr-rangestart));
+  if (inst !== null) {
+    //tagsList[addr] = mergeObjects(tagsList[addr], getCommitObject(inst));
+    stack.push(addr);
+  } 
+}
+
+function MakeRptCmt(addr, comment) {
+  //p('comment '+shex(addr)+'  '+comment);
+  if (tagsList[addr] === undefined) tagsList[addr] = {};
+  tagsList[addr]['comment'] = comment;
+}
+
+function MakeFunction(start, end) {
+  if (tagsList[start] === undefined) tagsList[start] = {};
+  tagsList[start]['function'] = shex(start)+":"+shex(end-start);
+  for (var i = start; i < end; i += 4) {
+    if (tagsList[i] === undefined) tagsList[i] = {};
+    tagsList[i]['scope'] = shex(start);
+  }
+}
+
+function MakeName(addr, name) {
+  if (tagsList[addr] === undefined) tagsList[addr] = {};
+  tagsList[addr]['name'] = name;
+}
+
+var SN_LOCAL = "SN_LOCAL";
+function MakeNameEx(addr, name, crap) {
+  if (tagsList[addr] === undefined) tagsList[addr] = {};
+  tagsList[addr]['name'] = name;
+}
+
+function MakeByte(addr) {
+  if (tagsList[addr] === undefined) tagsList[addr] = {};
+  tagsList[addr]['len'] = '1';
+  tagsList[addr]['endian'] = 'little';
+}
+
+function MakeDword(addr) {
+  if (tagsList[addr] === undefined) tagsList[addr] = {};
+  tagsList[addr]['len'] = '4';
+  tagsList[addr]['endian'] = 'little';
+}
+
+
+/* done */
+
+function init() {
   rangestart = fhex($('#rangestart')[0].value);
   rangelength = fhex($('#rangelength')[0].value);
-  var staticstart = fhex($('#staticstart')[0].value);
+  staticstart = fhex($('#staticstart')[0].value);
   iset = $('#iset')[0].value;
   rebuildParser();
   l('using iset: '+iset);
   rawdata = fetchRawAddressRange(rangestart, rangelength);
 
+  starttime = (new Date).getTime();
+
   seen = [];
   stack = [];
+
   for(var i=0;i<rangelength;i++) { seen.push(false); }
   l('rawdata and seen ready');
 
   tagsList = {};
+}
+
+
+function go() {
+  init();
 
   going = true;
-  starttime = (new Date).getTime();
   //re(staticstart, true);
   calls.push([staticstart, 0, iset]);
   setTimeout(analyze_function, 0);
@@ -62,10 +170,6 @@ function stop() {
   going = false;
 }
 
-// objects are shitty hash maps
-var seen;
-var stack;
-var s_addr, s_start;
 
 function do_resume() {
   going = true;
@@ -101,35 +205,7 @@ function upload_tags_to_server() {
   });
 }
 
-
-function analyze_function() {
-  if (going == false) {
-    return;
-  }
-  if (calls.length == 0) {
-    var elapsedtime = (new Date).getTime() - starttime;
-    l('done in '+(elapsedtime/1000.)+' seconds, uploading...');
-    upload_tags_to_server();
-    return;
-  }
-  var call = calls.pop();
-  var faddr = call[0];
-  var depth = call[1];
-  if (call[2] !== iset) {
-    iset = call[2];
-    rebuildParser();
-    l('using iset: '+iset);
-  }
-
-  if (seen[faddr] !== true) {
-    l('s '+shex(faddr), depth);
-  }
-
-  var stack = [];
-
-  var fi = [];
-
-  stack.push(faddr);
+function analyze_subfunction() {
   while (stack.length > 0) {
     var addr = stack.pop();
     if (seen[addr] === true) {
@@ -192,6 +268,37 @@ function analyze_function() {
       }
     }
   }
+}
+
+function analyze_function() {
+  if (going == false) {
+    return;
+  }
+  if (calls.length == 0) {
+    var elapsedtime = (new Date).getTime() - starttime;
+    l('done in '+(elapsedtime/1000.)+' seconds, uploading...');
+    upload_tags_to_server();
+    return;
+  }
+  var call = calls.pop();
+  var faddr = call[0];
+  depth = call[1];
+  if (call[2] !== iset) {
+    iset = call[2];
+    rebuildParser();
+    l('using iset: '+iset);
+  }
+
+  if (seen[faddr] !== true) {
+    l('s '+shex(faddr), depth);
+  }
+
+  stack = [];
+
+  fi = [];
+
+  stack.push(faddr);
+  analyze_subfunction();
 
 // add function information to tag db
   if (fi.length > 0) {

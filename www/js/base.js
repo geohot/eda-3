@@ -72,6 +72,10 @@ function fdec(str) {
 }
 
 function fnum(str) {
+  /*if (str === null || str === undefined) {
+    p('FNUM FAILED');
+    return -1;
+  }*/
   if (str.substr(0,2) == "0x") {
     return fhex(str);
   } else {

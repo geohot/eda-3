@@ -58,7 +58,10 @@ $(document).ready(function() {
   leftTab.addTab('core', $('<div id="core"><input type="button" value="step" onclick="idaStep()" /><input type="button" id="until" value="until" onclick="runUntilStart()" /><input type="button" value="stop" onclick="stopRunUntil()" /><br/><input type="button" value="remotestep" onclick="idaRemoteStep()" /><br/><span id="frequency"></span><br/><div id="registers"></div><br/><div id="iview"><select id="changes" size="4"></select><div id="changelist"></div></div></div>'), null, true);
   initCore('arm');
 
-  var mbc = new MoveBarController($('#movebar'), 0x8000, 0x9800, 4);
+  db.precacheTags(0, 0x12000);
+  p('precache done');
+
+  var mbc = new MoveBarController($('#movebar'), 0x0, 0x12000, 0x40);
 
   new ConsoleController($('#console'));
   consolePrint('welcome to EDA');
@@ -73,10 +76,10 @@ $(document).ready(function() {
   graphview.registerDefaultHandlers();
   rightTab.addTab('graph', graphTab, graphview, true);
   // focus can only be called when tab is active
-  graphview.focus(0x8000);
+  graphview.focus(0);
 
   var flatviewdom = $('<div id="flatviewport"></div>');
-  var flatview = new FlatViewport(flatviewdom, 0x8000, 0x20, 0x8000, 0x100);
+  var flatview = new FlatViewport(flatviewdom, 0, 0x20, 0, 0x100);
   flatview.registerDefaultHandlers();
   rightTab.addTab('flat', flatviewdom, flatview, false);
 

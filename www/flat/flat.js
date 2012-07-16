@@ -67,6 +67,10 @@ FlatViewport.prototype.render = function() {
                             db.raw(i, fnum(tags['len'])))
                             +'</td>';
     }
+     
+    if (tags['comment'] !== undefined) {
+      html += '<td class="comment">;&nbsp;' + tags['comment'] + '</td>';
+    }
 
 
     html += '</tr>';

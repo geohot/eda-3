@@ -13,7 +13,13 @@ function MoveBarController(dom, se, ee, step) {
   this.canvas[0].width = (((this.ee-this.se)/this.step)*this.swidth);
   this.dom.append(this.canvas);
   this.render();
+  this.canvas.click(this.handleClick.bind(this));
 }
+
+MoveBarController.prototype.handleClick = function(e) {
+  var addr = (e.offsetX*this.step)/this.swidth;
+  rightTab.activeTabData.focus(addr);
+};
 
 MoveBarController.prototype.render = function() {
   var ctx = this.canvas[0].getContext('2d');
@@ -23,11 +29,15 @@ MoveBarController.prototype.render = function() {
     var tags = db.tags(i);
     if (tags['scope'] !== undefined) {
       // inside function
-      color = "#00A2E8";
+      if (tags['iset'] == "thumb") {
+        color = "#80A2E8";
+      } else {
+        color = "#00A2E8";
+      }
     }
     ctx.fillStyle = color;
     ctx.fillRect(a, 0, this.swidth, 30);
     a += this.swidth;
   }
-}
+};
 
