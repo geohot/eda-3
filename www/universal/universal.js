@@ -58,10 +58,10 @@ $(document).ready(function() {
   leftTab.addTab('core', $('<div id="core"><input type="button" value="step" onclick="idaStep()" /><input type="button" id="until" value="until" onclick="runUntilStart()" /><input type="button" value="stop" onclick="stopRunUntil()" /><br/><input type="button" value="remotestep" onclick="idaRemoteStep()" /><br/><span id="frequency"></span><br/><div id="registers"></div><br/><div id="iview"><select id="changes" size="4"></select><div id="changelist"></div></div></div>'), null, true);
   initCore('arm');
 
-  db.precacheTags(0, 0x12000);
+  db.precache(0, 0x4000);
   p('precache done');
 
-  var mbc = new MoveBarController($('#movebar'), 0x0, 0x12000, 0x40);
+  var mbc = new MoveBarController($('#movebar'), 0x0, 0x4000, 0x10);
 
   new ConsoleController($('#console'));
   consolePrint('welcome to EDA');

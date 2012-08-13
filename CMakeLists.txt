@@ -9,6 +9,7 @@ SET(EDADB_SRCS
 ./cores/core.cc
 ./cores/armcore.cc
 ./edadb/edadb.cc
+./edadb/websockets.cc
 ./edadb/gen-cpp/EDAdb.cpp
 ./edadb/gen-cpp/edadb_constants.cpp
 ./edadb/gen-cpp/edadb_types.cpp
@@ -25,7 +26,7 @@ ADD_LIBRARY(edadb ${EDADB_SRCS})
 ADD_EXECUTABLE(edadb_server
 ./edadb/main.cc
 )
-TARGET_LINK_LIBRARIES(edadb_server edadb "thrift" "boost_serialization" "v8_base" "v8_snapshot")
+TARGET_LINK_LIBRARIES(edadb_server edadb "thrift" "boost_serialization" "v8_base" "v8_snapshot" "websockets")
 
 #-----testing below this line-----
 SET(GTEST_DIR ~/devtools/gtest-1.6.0)

@@ -4,23 +4,31 @@
 var pendingCommit = {};
 
 // currently blocking and not caching...can be fixed
+// this is still the call db.js uses
 function fetchRawAddressRange(address, length, changenumber) {
   changenumber = changenumber || 0;
-  var req = new XMLHttpRequest();
-  req.open('GET', '/eda/edadb/fetchrawextent.php?addr='+address+'&size='+length+'&changenumber='+changenumber, false);
-  req.asBlob = true;
-  req.overrideMimeType('text/plain; charset=x-user-defined');
-  req.send(null);
-  var b = new ArrayBuffer(req.response.length);
-  var ret = new Uint8Array(b);
-  for (var i = 0; i < req.response.length; i++) {
-    ret[i] = req.response.charCodeAt(i);
-    // add back current changes
-    if (pendingCommit[shex(address+i)] != null) {
-      ret[i] = pendingCommit[shex(address+i)];
+
+// WebSockets imp
+  if (db.socket !== null) {
+    //p("using websocket, fetchRawAddressRange");
+    return db.wsFetchRawAddressRange(address, length, changenumber);
+  } else {
+    var req = new XMLHttpRequest();
+    req.open('GET', '/eda/edadb/fetchrawextent.php?addr='+address+'&size='+length+'&changenumber='+changenumber, false);
+    req.asBlob = true;
+    req.overrideMimeType('text/plain; charset=x-user-defined');
+    req.send(null);
+    var b = new ArrayBuffer(req.response.length);
+    var ret = new Uint8Array(b);
+    for (var i = 0; i < req.response.length; i++) {
+      ret[i] = req.response.charCodeAt(i);
+      // add back current changes
+      if (pendingCommit[shex(address+i)] != null) {
+        ret[i] = pendingCommit[shex(address+i)];
+      }
     }
+    return ret;
   }
-  return ret;
 }
 
 function storeByteInPendingCommit(address, data) {

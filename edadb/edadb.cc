@@ -89,7 +89,7 @@ class EDAdbHandler : virtual public EDAdbIf {
   }
 
   void setTag(const int64_t address, const std::string& tagname, const std::string& data) {
-    //cout << "setting tag " << tagname << " of " << address << " to " << data << endl;
+    cout << "setting tag " << tagname << " of " << address << " to " << data << endl;
     Memory::Inst()->setTag(address, tagname, data);
   }
 

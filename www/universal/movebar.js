@@ -35,6 +35,9 @@ MoveBarController.prototype.render = function() {
         color = "#00A2E8";
       }
     }
+    if (db.immed(i, 1, 'little') == 0xAA) {
+      color = "black";
+    }
     ctx.fillStyle = color;
     ctx.fillRect(a, 0, this.swidth, 30);
     a += this.swidth;

@@ -14,6 +14,17 @@ var db = {
   tags_cache: {},
   pending_commit: {},
   cached_commits: [],
+  socket: null,
+  init: function() {
+    this.socket = new WebSocket("ws://localhost:9999/", "memory-read");
+    this.socket.onopen = function() { p('memory socket opened'); };
+    this.socket.onmessage = function() { p('memory message received'); };
+    
+  },
+  wsFetchRawAddressRange: function(address, length, changenumber) {
+    changenumber = changenumber || 0;
+    this.socket.send(address+" "+length+" "+changenumber);
+  },
   precache: function(addr, len) {
     p('precaching: '+shex(addr)+' - '+shex(addr+len));
     this.precacheData(addr, len);
@@ -27,7 +38,7 @@ var db = {
       } else {
         this.data_cache[i] = fetchRawAddressRange(i, 0x100);
       }
-      p('dcache miss 0x'+shex(i));
+      //p('dcache miss 0x'+shex(i));
     }
   },
   invalidateDCachePage: function(addr) {
@@ -191,4 +202,7 @@ var db = {
     return ret;
   }
 };
+
+// init the WebSockets the database uses
+db.init();
 

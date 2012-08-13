@@ -305,9 +305,10 @@ function uploadMachOFile(ab) {
         symbols.push(str);
         p('  '+n_type+' '+n_sect+' '+n_desc+' '+shex(nlist[2])+' = '+str);
 
-        if (n_desc == REFERENCE_FLAG_PRIVATE_DEFINED) {
+        // not sure why i had this
+        //if (n_desc == REFERENCE_FLAG_PRIVATE_DEFINED) {
           db.setTag(nlist[2], 'name', str);
-        }
+        //}
       }
     }
     if (load_command[0] == LC_DYSYMTAB) {
