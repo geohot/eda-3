@@ -16,10 +16,9 @@ var db = {
   cached_commits: [],
   socket: null,
   init: function() {
-    this.socket = new WebSocket("ws://localhost:9999/", "memory-read");
+    /*this.socket = new WebSocket("ws://localhost:9999/", "memory-read");
     this.socket.onopen = function() { p('memory socket opened'); };
-    this.socket.onmessage = function() { p('memory message received'); };
-    
+    this.socket.onmessage = function() { p('memory message received'); };*/
   },
   wsFetchRawAddressRange: function(address, length, changenumber) {
     changenumber = changenumber || 0;
