@@ -9,7 +9,8 @@
 <link rel="stylesheet" type="text/css" href="/eda/css/viewport.css" />
 <link rel="stylesheet" type="text/css" href="/eda/css/parsed.css" />
 </head>
-<body>
+<body id="graphviewport">
+<!--
 <div class="minimap" id="minimap">
 <canvas id="minicanvas" width=0 height=0></canvas>
 <canvas id="miniframe" width=0 height=0></canvas>
@@ -25,7 +26,7 @@
 <select id="changes" size="4"></select>
 <div id="changelist"></div>
 </div>
-</div>
+</div>-->
 <div id="viewporthtmlwrapper">
 </div>
 <script src="ida.js"></script>
@@ -41,7 +42,7 @@ $(document).ready(function() {
   }
 
   // err hacky, not always arm
-  initCore('arm');
+  //initCore('arm');
 });
 </script>
 </body>

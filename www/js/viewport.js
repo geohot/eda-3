@@ -82,7 +82,7 @@ Viewport.prototype.setSelectedLine = function(addr) {
     $('#'+this.selectedLine).addClass('line_selected');
     p('selected '+shex(addr));
     // only in ida
-    updateCausedChanges(addr);
+    //updateCausedChanges(addr);
   }
   return false;
 };

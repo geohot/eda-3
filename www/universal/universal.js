@@ -55,21 +55,21 @@ $(document).ready(function() {
   leftTab = new TabController($('#lefttabbar')[0], $('#leftcontent'));
   rightTab = new TabController($('#righttabbar')[0], $('#rightcontent'));
 
-  leftTab.addTab('core', $('<div id="core"><input type="button" value="step" onclick="idaStep()" /><input type="button" id="until" value="until" onclick="runUntilStart()" /><input type="button" value="stop" onclick="stopRunUntil()" /><br/><input type="button" value="remotestep" onclick="idaRemoteStep()" /><br/><span id="frequency"></span><br/><div id="registers"></div><br/><div id="iview"><select id="changes" size="4"></select><div id="changelist"></div></div></div>'), null, true);
-  initCore('arm');
+  //leftTab.addTab('core', $('<div id="core"><input type="button" value="step" onclick="idaStep()" /><input type="button" id="until" value="until" onclick="runUntilStart()" /><input type="button" value="stop" onclick="stopRunUntil()" /><br/><input type="button" value="remotestep" onclick="idaRemoteStep()" /><br/><span id="frequency"></span><br/><div id="registers"></div><br/><div id="iview"><select id="changes" size="4"></select><div id="changelist"></div></div></div>'), null, true);
+  //initCore('arm');
 
   db.precache(0, 0x4000);
   p('precache done');
 
   var mbc = new MoveBarController($('#movebar'), 0x0, 0x4000, 0x10);
 
-  new ConsoleController($('#console'));
-  consolePrint('welcome to EDA');
-  consolePrompt();
+  //new ConsoleController($('#console'));
+  //consolePrint('welcome to EDA');
+  //consolePrompt();
 
   var fc = new FunctionController($('<div id="functions"></div>'));
   fc.render();
-  leftTab.addTab('functions', fc.dom, fc, false);
+  leftTab.addTab('functions', fc.dom, fc, true);
 
   var graphTab = $('<div id="graphviewport"></div>');
   graphview = new IDAViewport(graphTab);
@@ -84,7 +84,7 @@ $(document).ready(function() {
   rightTab.addTab('flat', flatviewdom, flatview, false);
 
   // hacky shit
-  var hexviewdom = $('<iframe id="hexviewframe" src="/eda/xvi"></iframe>');
+  var hexviewdom = $('<iframe id="hexviewframe" src="/eda/xvi/index.html"></iframe>');
   rightTab.addTab('hex', hexviewdom,false);
 });
 

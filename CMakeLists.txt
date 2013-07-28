@@ -9,7 +9,7 @@ SET(EDADB_SRCS
 ./cores/core.cc
 ./cores/armcore.cc
 ./edadb/edadb.cc
-./edadb/websockets.cc
+#./edadb/websockets.cc
 ./edadb/gen-cpp/EDAdb.cpp
 ./edadb/gen-cpp/edadb_constants.cpp
 ./edadb/gen-cpp/edadb_types.cpp
@@ -17,6 +17,8 @@ SET(EDADB_SRCS
 INCLUDE_DIRECTORIES(./)
 INCLUDE_DIRECTORIES(/opt/local/include)
 INCLUDE_DIRECTORIES(/opt/local/include/thrift)
+INCLUDE_DIRECTORIES(/usr/local/include)
+INCLUDE_DIRECTORIES(/usr/local/include/thrift)
 INCLUDE_DIRECTORIES(~/devtools/thrift-0.6.0/lib/cpp/src)
 INCLUDE_DIRECTORIES(~/devtools/thrift-0.6.1/lib/cpp/src)
 INCLUDE_DIRECTORIES(~/devtools/v8/include)
@@ -26,7 +28,8 @@ ADD_LIBRARY(edadb ${EDADB_SRCS})
 ADD_EXECUTABLE(edadb_server
 ./edadb/main.cc
 )
-TARGET_LINK_LIBRARIES(edadb_server edadb "thrift" "boost_serialization" "v8_base" "v8_snapshot" "websockets")
+#TARGET_LINK_LIBRARIES(edadb_server edadb "thrift" "boost_serialization" "v8_base" "v8_snapshot" "websockets")
+TARGET_LINK_LIBRARIES(edadb_server edadb "thrift" "boost_serialization" "v8_base" "v8_snapshot")
 
 #-----testing below this line-----
 SET(GTEST_DIR ~/devtools/gtest-1.6.0)

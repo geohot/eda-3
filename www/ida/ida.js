@@ -150,6 +150,7 @@ IDAViewport.prototype.focus = function(addr_inner, nopush) {
 
   if (nopush !== true) {
     window.location.hash = shex(addr_inner);
+    window.history.replaceState(addr);
     //window.history.pushState(addr);
   }
 
