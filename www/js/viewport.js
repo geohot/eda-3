@@ -21,6 +21,25 @@ var KEY_CTRL = 0x100;
 
 var KEY_SEMICOLON = 186;
 
+window.onkeydown = function(e) {
+  var keynum = e.which;
+  //p('key: '+keynum);
+  if (view.dialogBox != null) {
+    if (keynum == KEY_ESC) {
+      view.dialogDismiss(false);
+    }
+    if (keynum == KEY_ENTER) {
+      view.dialogDismiss(true);
+    }
+    return;
+  }
+  if (e.ctrlKey) keynum += KEY_CTRL;
+  if (view.keyBindings[keynum] != null) {
+    view.keyBindings[keynum](e);
+    return false;
+  }
+};
+
 // constructor
 function Viewport(wrapper) {
   if (wrapper == undefined) return;
@@ -210,6 +229,7 @@ Viewport.prototype.registerDefaultHandlers = function() {
 }
 
 Viewport.prototype.registerKeyHandler = function(num, fxn) {
+  p("adding key binding "+num)
   this.keyBindings[num] = fxn;
 };
 

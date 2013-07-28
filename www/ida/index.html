@@ -26,13 +26,14 @@
 <select id="changes" size="4"></select>
 <div id="changelist"></div>
 </div>
-</div>-->
-<div id="viewporthtmlwrapper">
 </div>
+<div id="viewporthtmlwrapper">
+</div>-->
 <script src="ida.js"></script>
 <script>
 $(document).ready(function() {
-  view = new IDAViewport($('#viewporthtmlwrapper'));
+  //view = new IDAViewport($('#viewporthtmlwrapper'));
+  view = new IDAViewport($('#graphviewport'));
   view.registerDefaultHandlers();
   //view.focus(0x50DC);
   if (window.location.hash == "") {
