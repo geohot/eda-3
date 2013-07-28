@@ -50,8 +50,9 @@ FlatViewport.prototype.render = function() {
       tags['len'] = '1';
     }
 
-    html += '<td width="80px">'+shex(i, 8)+'</td>'
-    html += '<td width="100px">'+
+    html += '<td width="80px">'+shex(i, 8)+'</td>';
+    //p(i + " " + fnum(tags['len']));
+    html += '<td width="150px">'+
       displayDumpFromRaw(fnum(tags['len']),
                          db.raw(i, fnum(tags['len'])))
                          +'</td>';

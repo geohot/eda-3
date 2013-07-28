@@ -76,10 +76,14 @@ var db = {
       return this.data_cache[addr&0xFFFFFF00].subarray(addr&0xFF, (addr&0xFF)+len);
     } else {
       // please align your accesses stupid bitch
+      /* broken if a len extends over a page boundary */
       var ret = new Uint8Array(len);
       var rlen = len;
       var ptr = 0;
       for (var i = (addr&0xFFFFFF00); i <= ((addr+len)&0xFFFFFF00); i += 0x100) {
+        if (this.data_cache[i] == undefined) {
+          this.precacheData(i, 0x100);
+        }
         if (i < addr) {
           for (var j = 0; j < 0x100-(addr-i); j++) {
             ret[j] = this.data_cache[i][(addr-i)+j];

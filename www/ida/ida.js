@@ -31,6 +31,7 @@ function IDAViewport(wrapper) {
   this.miniframectx = this.miniframe.getContext("2d");
 
   wrapper[0].onmousedown = function(e) {
+    if (gbox == undefined) return;
     isDown = true;
     basex = e.x - fnum(gbox.style.left);
     basey = e.y - fnum(gbox.style.top);
@@ -50,18 +51,21 @@ function IDAViewport(wrapper) {
   };
 
   wrapper[0].onmousemove = function(e) {
+    if (gbox == undefined) return;
     if (isDown && !minidown) {
       this.scrollTo(e.x-basex, e.y-basey);
     }
   }.bind(this);
 
   wrapper[0].onmousewheel = function(e) {
+    if (gbox == undefined) return;
     this.scrollTo(e.wheelDeltaX + fnum(gbox.style.left),
                   e.wheelDeltaY + fnum(gbox.style.top));
   }.bind(this);
 
   var minidown = false;
   this.minimap.onmousedown = function(e) {
+    if (gbox == undefined) return;
     //p(e);
     var x = (e.offsetX - 5)*miniscale*-1;
     var y = (e.offsetY - 5)*miniscale*-1;
@@ -70,6 +74,7 @@ function IDAViewport(wrapper) {
   }.bind(this);
 
   this.minimap.onmousemove = function(e) {
+    if (gbox == undefined) return;
     if (minidown == true) {
       var x = (e.offsetX - 5)*miniscale*-1;
       var y = (e.offsetY - 5)*miniscale*-1;
@@ -85,6 +90,7 @@ IDAViewport.prototype.constructor = IDAViewport;
 IDAViewport.prototype.parent = Viewport;
 
 IDAViewport.prototype.scrollTo = function(x, y) {
+  if (gbox == undefined) return;
   //p('scrollto '+x+'  '+y);
   var mctx = this.miniframectx;
   var w = this.wrapper[0].offsetWidth;

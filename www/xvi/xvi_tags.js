@@ -9,6 +9,8 @@ function updateTagsForAddress(address) {
 }
 
 function updateTagsTable(tags) {
+  if (tags == null) return;
+  //p(tags);
   updateObjectEditor('tag', tags, 10, 30);
   updateTagsResolved(tags);
 }

@@ -1,6 +1,8 @@
 from flask import request
 from flask import Response
 from flask import Flask
+import hashlib
+import parse
 import sys
 import os
 import json
@@ -20,6 +22,23 @@ class Tags:
 daddr = {}
 tags = Tags()
 cl = 0
+prj_name = ""
+
+@app.route('/upload.py', methods=["POST"])
+def upload():
+  global prj_name
+  f = request.files['the_file']
+  d = f.read()
+  prj_name = f.filename+"_"+hashlib.sha1(d).hexdigest()
+  ff = open("../tmp/uploads/"+prj_name, "wb")
+  ff.write(d)
+  ff.close()
+  ff = open("../tmp/uploads/"+prj_name, "rb")
+  return parse.go(ff, daddr, tags)
+
+@app.route('/')
+def homepage():
+  return open("homepage.html").read()
 
 @app.route('/eda/graph/dot.php', methods=["POST"])
 def graph_dot():
@@ -137,8 +156,10 @@ def edadb_unimplemented(path):
 @app.route('/eda/<path:path>')
 def file(path):
   path = "../www/"+path
+  """
   if os.path.isdir(path):
     path += "/index.html"
+  """
   dat = open(path, "r").read()
   if path[-3:] == ".js":
     return Response(dat, mimetype='text/javascript')
@@ -146,7 +167,7 @@ def file(path):
     return Response(dat, mimetype='text/css')
   return dat
 
-db_file = "/tmp/tmp.db"
+db_file = "../tmp/tmp.db"
 did_save = mutex.mutex()
 
 def save():

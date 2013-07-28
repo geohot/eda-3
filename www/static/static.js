@@ -16,11 +16,19 @@ function l(d, depth) {
   lbox.scrollTop = lbox.scrollHeight;
 }
 
+function trash(e) {
+  e.stopPropagation();
+  e.preventDefault();
+}
+
 
 $(document).ready(function() {
   lbox = $('#output')[0];
   l('welcome to static analyzer');
   l('drag and drop .idc files here');
+  $('#output')[0].addEventListener("dragenter", trash, false);
+  $('#output')[0].addEventListener("dragexit", trash, false);
+  $('#output')[0].addEventListener("dragover", trash, false);
   $('#output')[0].addEventListener("drop", handleIDCDrop, false);
 });
 
@@ -49,26 +57,50 @@ var s_addr, s_start;
 /* done */
 
 function handleIDCDrop(e) {
-  init();
-
   e.stopPropagation();
   e.preventDefault();
   if (e.dataTransfer.files.length > 0) {
     var file = e.dataTransfer.files[0];
-    if (file.name.substr(file.name.length -4) == ".idc") {
-      l('reading file '+file.name);
+    if (file.name.substr(file.name.length-4) == ".idc") {
+      l('reading idc file '+file.name);
       var reader = new FileReader();
       reader.onloadend = handleIDC;
+      reader.readAsText(file);
+    } else if (file.name.substr(file.name.length-3) == ".il") {
+      l('reading il file '+file.name);
+      var reader = new FileReader();
+      reader.onloadend = handleIL;
       reader.readAsText(file);
     } else {
       l('not an idc file');
     }
   }
+  return false;
+}
+
+function handleIL(e) {
+  init();
+  il = e.target.result.split("\n");
+  addr = -1
+  for (var i = 0; i < il.length; i++) {
+    cmd = il[i].split(" ")
+    if (cmd[0] == "addr") {
+      addr = fhex(cmd[1])
+      tagsList[addr] = {}
+      tagsList[addr]['parsed'] = il[i].split('"')[1]
+    } else if (cmd[0] == "label") {
+      tagsList[addr]['name'] = cmd[1]
+    /*} else if (cmd[0] == "cjmp") {
+      tagsList[addr]['flow'].append( cmd[1]*/
+    }
+  }
+  upload_tags_to_server();
 }
 
 var idc;
 
 function handleIDC(e) {
+  init();
   idc = e.target.result.split("\n");
   for (var i = 0; i < idc.length; i++) {
   //for (var i = 0; i < 400; i++) {
