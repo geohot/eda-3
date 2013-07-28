@@ -191,7 +191,7 @@ void Memory::dumpToFile(const std::string& filename) {
   printf("dumping to file %s...\n", filename.c_str());
   std::ofstream ofs(filename.c_str(), std::ios::binary);
   boost::archive::binary_oarchive oa(ofs);
-  oa << this;
+  //oa << this;
   printf("done\n");
 }
 
