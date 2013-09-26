@@ -12,7 +12,7 @@ def go(f, daddr, tags):
     print sec.name, sec.header
     if sec['sh_flags'] & 4:
       dat = sec.data()
-      for op in distorm3.DecomposeGenerator(sec['sh_addr'], dat, distorm3.Decode64Bits):
+      for op in distorm3.DecomposeGenerator(sec['sh_addr'], dat, distorm3.Decode32Bits):
         p = "\\t{\\o{"+op.mnemonic+"}}"
         f = False
         for i in op.operands:
