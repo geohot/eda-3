@@ -18,9 +18,10 @@
   display: inline-block;
   position: fixed;
   top: 100px;
-  right: 500px;
+  left: 100px;
   background-color: #FFFFD0;
   padding:5px;
+  display: none;
 }
 
 .arrayedit0 {

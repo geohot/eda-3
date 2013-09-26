@@ -2,7 +2,7 @@ from flask import request
 from flask import Response
 from flask import Flask
 import hashlib
-import parse
+#import parse
 import sys
 import os
 import json
@@ -24,6 +24,7 @@ tags = Tags()
 cl = 0
 prj_name = ""
 
+"""
 @app.route('/upload.py', methods=["POST"])
 def upload():
   global prj_name
@@ -35,6 +36,7 @@ def upload():
   ff.close()
   ff = open("../tmp/uploads/"+prj_name, "rb")
   return parse.go(ff, daddr, tags)
+"""
 
 @app.route('/')
 def homepage():

@@ -21,12 +21,22 @@ function handleFileDrop(e) {
   // should probably support multiple files
   if (e.dataTransfer.files.length > 0) {
     var file = e.dataTransfer.files[0];
-    fileName = file.name;
-    $('#dropzone')[0].innerHTML = "reading file";
-    var reader = new FileReader();
-    reader.onloadend = handleFileReadDone;
-    reader.readAsArrayBuffer(file);
+    handleFile(file);
   }
+}
+
+function handleFile(file) {
+  fileName = file.name;
+  $('#dropzone')[0].innerHTML = "reading file";
+  var reader = new FileReader();
+  reader.onloadend = handleFileReadDone;
+  reader.readAsArrayBuffer(file);
+}
+
+function handleFileSelect() {
+  p("handleFileSelect called");
+  handleFile($('#the_file')[0].files[0]);
+  return false;
 }
 
 // fix for bug where Uint32Array doesn't work at all on non multiple 4 ArrayBuffers
@@ -150,15 +160,33 @@ function uploadPEFile(ab) {
 }
 
 function uploadELFFile(ab) {
-  var Elf32_Ehdr = new Uint32Array(ab, 0, 0x34);
-  var e_entry = Elf32_Ehdr[6];
-  var e_phoff = Elf32_Ehdr[7];  // Program headers
-  var e_shoff = Elf32_Ehdr[8];  // Section headers
-  var e_phentsize = Elf32_Ehdr[10]>>16;
-  var e_phnum = Elf32_Ehdr[11]&0xFFFF;
-  var e_shentsize = Elf32_Ehdr[11]>>16;
-  var e_shnum = Elf32_Ehdr[12]&0xFFFF;
-  var e_shstrndx = Elf32_Ehdr[12]>>16; // The section of section strings
+  var Elf32_Ehdr = new Uint32Array(ab, 0, 0x40);
+
+  var e_ident = Elf32_Ehdr[4];
+
+  p('e_ident '+shex(e_ident));
+
+  var off = 0;
+  var is64 = 0
+  if ((e_ident & 0xFF) == 2) {
+    p('64 bit detected');
+    off = 3;
+    is64 = 1;
+    /* dropping the high half on the floor */
+    var e_entry = Elf32_Ehdr[6];
+    var e_phoff = Elf32_Ehdr[8];  // Program headers
+    var e_shoff = Elf32_Ehdr[10];  // Section headers
+  } else {
+    var e_entry = Elf32_Ehdr[6];
+    var e_phoff = Elf32_Ehdr[7];  // Program headers
+    var e_shoff = Elf32_Ehdr[8];  // Section headers
+  }
+
+  var e_phentsize = Elf32_Ehdr[10+off]>>16;
+  var e_phnum = Elf32_Ehdr[11+off]&0xFFFF;
+  var e_shentsize = Elf32_Ehdr[11+off]>>16;
+  var e_shnum = Elf32_Ehdr[12+off]&0xFFFF;
+  var e_shstrndx = Elf32_Ehdr[12+off]>>16; // The section of section strings
   p('entry point @ '+shex(e_entry));
 
   var SHT_SYMTAB = 2;
@@ -170,9 +198,15 @@ function uploadELFFile(ab) {
   p(e_shstrndx);
   for (var ph = e_phoff; ph < e_phoff+(e_phnum*e_phentsize); ph += e_phentsize) {
     var phd = new Uint32Array(ab, ph, e_phentsize/4);
-    var p_offset = phd[1];
-    var p_vaddr = phd[2];
-    var p_filesz = phd[4];
+    if (is64) {
+      var p_offset = phd[2];
+      var p_vaddr = phd[4];
+      var p_filesz = phd[8];
+    } else {
+      var p_offset = phd[1];
+      var p_vaddr = phd[2];
+      var p_filesz = phd[4];
+    }
     p('program '+shex(ph)+'  '+shex(p_offset)+' -> '+shex(p_vaddr)+'-'+shex(p_filesz));
     //for(var i=0;i<phd.length;i++) p('  '+shex(phd[i]));
     rawcommit(p_vaddr, extractRegion(ab, p_offset, p_filesz));
@@ -183,19 +217,40 @@ function uploadELFFile(ab) {
   for (var sh = e_shoff; sh < e_shoff+(e_shnum*e_shentsize); sh += e_shentsize) {
     var shd = new Uint32Array(ab, sh, e_shentsize/4);
     var sh_name_str = asciiString(shstrsraw, shd[0]);
-    p(shex(shd[4])+'  '+shex(shd[3])+' '+sh_name_str+' '+shex(shd[5])+' '+shex(shd[1])+' '+shex(shd[2]));
-    if (shd[1] == SHT_SYMTAB) symtab = new Uint32Array(ab, shd[4], shd[5]/4);
-    if (shd[1] == SHT_STRTAB) strtab = new Uint8Array(ab, shd[4], shd[5]);
+
+    if (is64) {
+      var sh_type = shd[1];
+      var sh_flags = shd[2];
+      var sh_addr = shd[4];
+      var sh_offset = shd[6];
+      var sh_size = shd[8];
+    } else {
+      var sh_type = shd[1];
+      var sh_flags = shd[2];
+      var sh_addr = shd[3];
+      var sh_offset = shd[4];
+      var sh_size = shd[5];
+    }
+
+    p(shex(sh_offset)+'  '+shex(sh_addr)+' '+sh_name_str+' '+shex(sh_size)+' '+shex(sh_type)+' '+shex(sh_flags));
+    if (sh_type == SHT_SYMTAB) symtab = new Uint32Array(ab, sh_offset, sh_size/4);
+    if (sh_type == SHT_STRTAB) strtab = new Uint8Array(ab, sh_offset, sh_size);
     if (sh_name_str.substr(0,6) == '.debug') {
-      hexdump(new Uint8Array(extractRegion(ab, shd[4], shd[5])));
+      hexdump(new Uint8Array(extractRegion(ab, sh_offset, sh_size)));
     }
   }
 
   if (symtab !== undefined && strtab !== undefined) {
     for (var i=0; i<symtab.length; i+=4) {
-      var st_name = symtab[i+0];
-      var st_value = symtab[i+1];
-      var st_size = symtab[i+2];
+      if (is64) {
+        var st_name = symtab[i+0];
+        var st_value = symtab[i+2];
+        var st_size = symtab[i+4];
+      } else {
+        var st_name = symtab[i+0];
+        var st_value = symtab[i+1];
+        var st_size = symtab[i+2];
+      }
       if (st_name !== 0 && st_value !== 0) {
         var name = asciiString(strtab, st_name);
         p(shex(st_value)+' = '+shex(st_name)+'('+name+')');
