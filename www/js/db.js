@@ -99,6 +99,15 @@ var db = {
       return ret;
     }
   },
+  flushTagCache: function() {
+    this.tags_cache = [];
+  },
+  setGlobalTag: function(name, data) {
+    return this.setTag(0xFFFFFFFF, name, data);
+  },
+  globalTags: function() {
+    return this.tags(0xFFFFFFFF);
+  },
   setTag: function(addr, name, data) {
     if (this.tags_cache[addr] === undefined) {
       this.tags_cache[addr] = {};

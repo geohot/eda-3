@@ -15,6 +15,8 @@ var KEY_RIGHTCHOKE = 221;
 
 var KEY_FKEY = 111; // FKEY+3 = F3 etc...
 
+var KEY_SPACE = 32;
+
 var KEY_ENTER = 13;
 var KEY_ESC = 27;
 var KEY_CTRL = 0x100;
@@ -64,6 +66,7 @@ function Viewport(wrapper) {
       for (var i = 0; i < classes.length; i++) {
         var binding = bindings[classes[i]];
         if (binding !== undefined) {
+          p("calling "+classes[i]);
           var stop = binding(node, e);
           if (stop === true) break;
         }
@@ -167,7 +170,7 @@ Viewport.prototype.registerDefaultHandlers = function() {
 
   this.registerKeyHandler(asc('X'), function() {
     var loc = fhex(this.selectedLocation.childNodes[0].value);
-    p(loc);
+    p("xrefs for "+loc);
     var flow = eval(db.tags(loc)['flow']);
     if (flow !== undefined) {
       var xrefs = flow.filter(function(x) { if(x.substr(0,1)=='X') return true; });

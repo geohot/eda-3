@@ -49,6 +49,10 @@ function objcount(obj) {
   return i;
 }
 
+function sdec(num) {
+  return num.toString(10);
+}
+
 function shex(num, len) {
   if (num === undefined) {
     return 'UNDEFINED';

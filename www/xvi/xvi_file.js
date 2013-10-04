@@ -288,6 +288,12 @@ function uploadMachOFile(ab) {
       var filesize = segment_command[9];
       var nsects = segment_command[12];
       p('  '+segname+': '+shex(vmaddr)+' '+shex(vmaddr+vmsize)+' in file at '+shex(fileoff)+' '+shex(fileoff+filesize));
+      db.setGlobalTag("rangestart", vmaddr);
+      db.setGlobalTag("rangelength", vmsize);
+      db.setGlobalTag("endian", "little");
+
+      // hacks
+      db.setGlobalTag("iset", "thumb");
 
       var S_NON_LAZY_SYMBOL_POINTERS = 0x6;
       var S_LAZY_SYMBOL_POINTERS = 0x7;

@@ -8,6 +8,9 @@ var maxChangeNumber = 0;
 // init functions
 
 $(document).ready(function() {
+  if (window.location.hash !== "" ) {
+    viewportAddress = fhex(window.location.hash.substr(1));
+  }
   renderHexViewport(viewportAddress, viewportLength);
   selectAddress(viewportAddress, 'H');
   maxChangeNumber = getMaxChangelist();

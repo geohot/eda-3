@@ -149,7 +149,10 @@ def edadb_setmultitag():
 def edadb_settag():
   global cl, tags
   addr = int(request.args['addr'])
-  tags[int(addr)][request.args['tagname']] = request.data
+  if request.data == "":
+    tags[int(addr)].__delitem__(request.args['tagname'])
+  else:
+    tags[int(addr)][request.args['tagname']] = request.data
   return ""
 
 @app.route('/eda/edadb/getreaderlist.php')
@@ -205,5 +208,6 @@ if __name__ == "__main__":
     f.close()
   signal.signal(signal.SIGINT, manhandle)
   app.debug = True
-  app.run(host='0.0.0.0')
+  #app.run(host='0.0.0.0')
+  app.run()
 

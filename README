@@ -3,6 +3,13 @@ This is EDA3, the fourth EDA
 New Instructions:
 * Install python packages I'm too lazy to enumerate
 * Run ./go.sh
+* Visit http://localhost:5000/
+* Use xvi to upload file
+
+Coming Soon:
+* Use 0xFFFFFFFF as global tag storage
+* Support mode switching with spacebar in IDA
+* Support a,c,d hotkeys
 
 flask/ -- the new backend storage and webserver in python
   eda.py -- the main server
@@ -75,6 +82,11 @@ Implemented tags:
   * R - return
 * scope -- start address of function this is in
 * function -- list of addresses in function 3A30:50 is format
+
+Global tags(0xFFFFFFFF):
+* range_start
+* range_length
+* endian
 
 Considering tags:
 * compiled -- the javascript code that actually runs the instruction, can call instruction set locals
