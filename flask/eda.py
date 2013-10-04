@@ -55,6 +55,17 @@ def isdf_loadiset():
   print request.args
   return open("../isdf/"+request.args['iset']+".isdf2").read()
 
+@app.route('/eda/isdf/saveiset.php', methods=["POST"])
+def isdf_saveiset():
+  iset = request.data.split('"iset":"')[1].split('"')[0]
+  print "saving",iset
+  f = open("../isdf/"+iset+".isdf2", "w")
+  f.write(request.data)
+  f.close()
+  return ""
+  
+  #return open("../isdf/"+request.args['iset']+".isdf2").read()
+
 @app.route('/eda/edadb/getmultitag.php')
 def edadb_getmultitag():
   global cl, tags

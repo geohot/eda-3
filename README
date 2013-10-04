@@ -1,5 +1,11 @@
 This is EDA3, the fourth EDA
 
+New Instructions:
+* Install python packages I'm too lazy to enumerate
+* Run ./go.sh
+
+flask/ -- the new backend storage and webserver in python
+  eda.py -- the main server
 edadb/ -- the backend storage system for raw ram
   byte.* -- the Byte class
   memory.* -- the Memory class
