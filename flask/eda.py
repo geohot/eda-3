@@ -150,7 +150,8 @@ def edadb_settag():
   global cl, tags
   addr = int(request.args['addr'])
   if request.data == "":
-    tags[int(addr)].__delitem__(request.args['tagname'])
+    if request.args['tagname'] in tags[int(addr)]:
+      tags[int(addr)].__delitem__(request.args['tagname'])
   else:
     tags[int(addr)][request.args['tagname']] = request.data
   return ""

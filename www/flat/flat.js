@@ -30,9 +30,27 @@ function FlatViewport(wrapper, addr, linecount) {
       ea++;
     }
     p(shex(sa)+"-"+shex(ea));
-    p(str)
+
+    var strtmp = str.toLowerCase();
+    var strptr = 0;
+    var strname = "a";
+    var i = 0;
+    while (i < 10) {
+      if (strptr > strtmp.length) break;
+      if ((strtmp[strptr] >= 'a' && strtmp[strptr] <= 'z') ||
+          (strtmp[strptr] >= '0' && strtmp[strptr] <= '9')) {
+        if (i == 0) {
+          strname += strtmp[strptr].toUpperCase();
+        } else {
+          strname += strtmp[strptr];
+        }
+        i++;
+      }
+      strptr++;
+    }
+    p(strname+": "+str)
     db.setTag(sa, "len", sdec(ea-sa));
-    db.setTag(sa, "name", "a_"+str);
+    db.setTag(sa, "name", strname);
     db.setTag(sa, "comment",str);
     this.render();
   }.bind(this));
@@ -126,6 +144,11 @@ FlatViewport.prototype.render = function() {
     }
 
     html += '<td class="flataddr" width="80px">'+shex(i, 8)+'</td>';
+    if (tags['name'] != undefined) {
+      html += '<td class="name" width="80px">'+tags['name']+'</td>';
+    } else {
+      html += '<td class="name" width="80px"></td>';
+    }
     //p(i + " " + fnum(tags['len']));
     html += '<td width="160px">'+
       displayDumpFromRaw(fnum(tags['len']),

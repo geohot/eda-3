@@ -36,6 +36,20 @@ function IDAViewport(wrapper) {
     window.location = "/eda/flat/index.html#"+shex(this.selectedLine);
   }.bind(this));
 
+  wrapper[0].ontouchstart = function(e) {
+    var x = e.changedTouches[0].pageX;
+    var y = e.changedTouches[0].pageY;
+    basex = x - fnum(gbox.style.left);
+    basey = y - fnum(gbox.style.top);
+  }.bind(this);
+
+  wrapper[0].ontouchmove = function(e) {
+    var x = e.changedTouches[0].pageX;
+    var y = e.changedTouches[0].pageY;
+    this.scrollTo(x-basex, y-basey);
+    return false;
+  }.bind(this);
+
   wrapper[0].onmousedown = function(e) {
     if (gbox == undefined) return;
     isDown = true;
