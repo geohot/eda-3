@@ -9,6 +9,7 @@ import json
 import signal
 import pickle
 import mutex
+import otooler
 app = Flask(__name__)
 
 class Tags:
@@ -37,6 +38,22 @@ def upload():
   ff = open("../tmp/uploads/"+prj_name, "rb")
   return parse.go(ff, daddr, tags)
 """
+
+def handle_upload(request):
+  global prj_name
+  f = request.files['the_file']
+  d = f.read()
+  prj_name = f.filename+"_"+hashlib.sha1(d).hexdigest()
+  ff = open("../tmp/uploads/"+prj_name, "wb")
+  ff.write(d)
+  ff.close()
+  return "../tmp/uploads/"+prj_name
+
+@app.route('/otool.py', methods=["POST"])
+def otool():
+  fn = handle_upload(request)
+  return "<pre>"+otooler.parse_file(fn)+"</pre>"
+
 
 @app.route('/')
 def homepage():

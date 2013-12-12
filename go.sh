@@ -1,5 +1,5 @@
 #!/bin/sh
-mkdir -p tmp
+mkdir -p tmp/uploads
 cd flask
 python eda.py
 
