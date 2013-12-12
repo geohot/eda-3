@@ -69,7 +69,13 @@ function handleFileReadDone(e) {
     p(shex(d[0]));
     if (d[0] == 0xFEEDFACE) {
       $('#dropzone')[0].innerHTML = "parsing Mach-O file";
-      uploadMachOFile(ab);
+      uploadMachOFile(ab, 0);
+      $('#dropzone')[0].innerHTML = "Mach-O file uploaded";
+      return;
+    }
+    if (d[0] == 0xFEEDFACF) {
+      $('#dropzone')[0].innerHTML = "parsing Mach-O 64 file";
+      uploadMachOFile(ab, 1);
       $('#dropzone')[0].innerHTML = "Mach-O file uploaded";
       return;
     }
@@ -260,8 +266,9 @@ function uploadELFFile(ab) {
   }
 }
 
-function uploadMachOFile(ab) {
+function uploadMachOFile(ab, is64) {
   var LC_SEGMENT = 0x1; // segment of this file to be mapped
+  var LC_SEGMENT_64 = 0x19;
   var LC_SYMTAB = 0x2; // link-edit stab symbol table info
   var LC_DYSYMTAB = 0xB; // dynamic link-edit symbol table info
   var LC_LOAD_DYLINKER = 0xE; // load a dynamic linker
@@ -271,22 +278,38 @@ function uploadMachOFile(ab) {
   var symbols = [];
   var symbol_offsets = [];
 
-  var mach_header_64 = new Uint32Array(ab, 0, 0x1C);
-  var ncmds = mach_header_64[4];
-  var sizeofcmds = mach_header_64[5];
-  var offset = 0x1C;
+
+  var mach_header = new Uint32Array(ab, 0, 0x1C);
+  var ncmds = mach_header[4];
+  var sizeofcmds = mach_header[5];
+  if (is64) {
+    var ptr_size = 8;
+    var offset = 0x20;
+  } else {
+    var ptr_size = 4;
+    var offset = 0x1C;
+  }
 
   for (var cmd = 0; cmd < ncmds; cmd++) {
     var load_command = new Uint32Array(ab, offset, 0x8);
     p('cmd: '+shex(load_command[0])+' len '+shex(load_command[1]));
-    if (load_command[0] == LC_SEGMENT) {
+    // this is wrong, 32 bit segments can be in 64 bit files?
+    if (load_command[0] == LC_SEGMENT || load_command[0] == LC_SEGMENT_64) {
       var segment_command = new Uint32Array(ab, offset, 14*4);
       var segname = asciiString(new Uint8Array(ab, offset+8, 0x10));
-      var vmaddr = segment_command[6];
-      var vmsize = segment_command[7];
-      var fileoff = segment_command[8];
-      var filesize = segment_command[9];
-      var nsects = segment_command[12];
+      if (is64) {
+        var vmaddr = segment_command[6];
+        var vmsize = segment_command[8];
+        var fileoff = segment_command[10];
+        var filesize = segment_command[12];
+        var nsects = segment_command[16];
+      } else {
+        var vmaddr = segment_command[6];
+        var vmsize = segment_command[7];
+        var fileoff = segment_command[8];
+        var filesize = segment_command[9];
+        var nsects = segment_command[12];
+      }
       p('  '+segname+': '+shex(vmaddr)+' '+shex(vmaddr+vmsize)+' in file at '+shex(fileoff)+' '+shex(fileoff+filesize));
       db.setGlobalTag("rangestart", vmaddr);
       db.setGlobalTag("rangelength", vmsize);
@@ -299,45 +322,63 @@ function uploadMachOFile(ab) {
       var S_LAZY_SYMBOL_POINTERS = 0x7;
       var S_SYMBOL_STUBS = 0x8;
 
-      var offset_sect = offset+14*4;
+      if (is64) {
+        var offset_sect = offset+18*4;
+      } else {
+        var offset_sect = offset+14*4;
+      }
       for (var sect = 0; sect < nsects; sect++) {
-        var section = new Uint32Array(ab, offset_sect, 0x44);
+        var section = new Uint32Array(ab, offset_sect, 0x44 + 8);
         var sectname = asciiString(new Uint8Array(ab, offset_sect, 0x10));
         var segname = asciiString(new Uint8Array(ab, offset_sect+0x10, 0x10));
-        var reloff = section[12];
-        var nreloc = section[13];
-        var flags = section[14];
-        var start = section[8];
-        var len = section[9];
+        if (is64) {
+          var start = section[8];
+          var len = section[10];
+          /* offset, align */
+          var reloff = section[14];
+          var nreloc = section[15];
+          var flags = section[16];
+        } else {
+          var reloff = section[12];
+          var nreloc = section[13];
+          var flags = section[14];
+          var start = section[8];
+          var len = section[9];
+        }
         p('    '+sectname+' '+segname+' @ '+shex(section[8])+' '+shex(section[9])+' relocs '+shex(reloff)+' '+nreloc+' flags '+shex(flags));
 
         if ((flags&0xF) == S_SYMBOL_STUBS) {
-          p('      adding '+(len/0x4)+' symbol offsets SYMBOL_STUBS');
+          p('      adding '+(len/ptr_size)+' symbol offsets SYMBOL_STUBS');
           symbol_stubs = start;
           //for (var i = start; i < start+len; i+=0xC) {
-          for (var i = start; i < start+len; i+=0x4) {
+          for (var i = start; i < start+len; i+=ptr_size) {
             symbol_offsets.push(i);
           }
         }
 
         // symbol stubs point here
         if ((flags&0xF) == S_LAZY_SYMBOL_POINTERS) {
-          p('      adding '+(len/0x4)+' symbol offsets LAZY_SYMBOL_POINTERS');
+          p('      adding '+(len/ptr_size)+' symbol offsets LAZY_SYMBOL_POINTERS');
           la_symbol_ptrs = section[8];
-          for (var i = start; i < start+len; i+=4) {
+          for (var i = start; i < start+len; i+=ptr_size) {
             symbol_offsets.push(i);
           }
         }
 
         if ((flags&0xF) == S_NON_LAZY_SYMBOL_POINTERS) {
-          p('      adding '+(len/0xC)+' symbol offsets NON_LAZY_SYMBOL_POINTERS');
+          // was 0xC in divide, maybe wrong
+          p('      adding '+(len/ptr_size)+' symbol offsets NON_LAZY_SYMBOL_POINTERS');
           nl_symbol_ptrs = section[8];
-          for (var i = start; i < start+len; i+=4) {
+          for (var i = start; i < start+len; i+=ptr_size) {
             symbol_offsets.push(i);
           }
         }
 
-        offset_sect += 0x44;
+        if (is64) {
+          offset_sect += 0x44 + 8;
+        } else {
+          offset_sect += 0x44;
+        }
       }
       rawcommit(vmaddr, extractRegion(ab, fileoff, filesize));
     }

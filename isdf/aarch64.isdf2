@@ -1,1 +1,1 @@
-{"iset":"aarch64","endian":"little","local":{},"parsed":{},"env":{}}
+{"iset":"aarch64","endian":"little","local":{"Io(o)":"return '\\\\t{\\\\o{'+o+'}}';"},"parsed":{"oo 101 V 010 L iiiiiii uuuuu nnnnn ttttt":["Io(L?'STP':'LDP')",null,"Load/store register pair (offset)"],"oo 101 V 001 L iiiiiii uuuuu nnnnn ttttt":["Io(L?'STP':'LDP')",null,"Load/store register pair (post-indexed)"],"oo 101 V 011 L iiiiiii uuuuu nnnnn ttttt":["Io(L?'STP':'LDP')",null,"Load/store register pair (pre-indexed)"]},"env":{}}
